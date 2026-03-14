@@ -1,0 +1,45 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ns-tier0
+
+bases:
+  - ../../base
+
+namePrefix: dev-
+
+commonLabels:
+  environment: dev
+
+patches:
+  - path: reduce-replicas.yaml
+
+images:
+  - name: gcr.io/PROJECT_ID/customer-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/policy-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/premium-calc-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/claims-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/payment-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/billing-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/document-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/fraud-detection-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/notification-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/reference-data-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/broker-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/audit-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/analytics-service
+    newTag: dev-latest
+  - name: gcr.io/PROJECT_ID/workflow-orchestrator
+    newTag: dev-latest

@@ -1,0 +1,107 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot
+*.jar
+*.war
+*.ear
+application-local.yml
+application-secrets.yml
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.eclipse/
+.classpath
+.project
+.settings/
+*.code-workspace
+.vscode/
+*.swp
+*.swo
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+.next/
+.nuxt/
+.output/
+
+# Angular
+.angular/
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V1/
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Keys / Secrets
+*.pem
+*.key
+*.p12
+*.jks
+*.crt
+*.csr
+vault-token
+
+# GCP service account keys (never commit)
+*-service-account.json
+*-sa-key.json
+gcp-key.json
+
+# application-local.yml is already gitignored above
+# application-prod.yml is committed (uses env var placeholders only, no secrets)
+
+# Maven wrapper jar (optional — uncomment if you don't want it committed)
+# .mvn/wrapper/maven-wrapper.jar

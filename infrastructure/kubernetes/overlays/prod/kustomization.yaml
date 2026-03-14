@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../base
+
+commonLabels:
+  environment: prod
+
+patches:
+  - path: increase-replicas.yaml
+
+images:
+  - name: gcr.io/PROJECT_ID/customer-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/policy-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/premium-calc-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/claims-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/payment-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/billing-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/document-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/fraud-detection-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/notification-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/reference-data-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/broker-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/audit-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/analytics-service
+    newTag: "1.0.0"
+  - name: gcr.io/PROJECT_ID/workflow-orchestrator
+    newTag: "1.0.0"

@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: policy-service
+  namespace: ns-tier0
+  labels:
+    app: policy-service
+    eip/tier: "0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: policy-service
+  template:
+    metadata:
+      labels:
+        app: policy-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path:   "/actuator/prometheus"
+        prometheus.io/port:   "8082"
+    spec:
+      serviceAccountName: eip-workload
+      containers:
+        - name: policy-service
+          image: gcr.io/PROJECT_ID/policy-service:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: policy-db-secret
+                  key: url
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: policy-db-secret
+                  key: username
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: policy-db-secret
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: policy-db-secret
+                  key: password
+            - name: PREMIUM_CALC_URL
+              value: "http://premium-calc-service.ns-tier1.svc.cluster.local:8083"
+          envFrom:
+            - configMapRef:
+                name: kafka-config
+            - configMapRef:
+                name: keycloak-config
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "768Mi"
+            limits:
+              cpu: "2000m"
+              memory: "1.5Gi"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8082
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: policy-service
+  namespace: ns-tier0
+spec:
+  selector:
+    app: policy-service
+  ports:
+    - port: 8082
+      targetPort: 8082
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: policy-service
+  namespace: ns-tier0
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: policy-service
+  minReplicas: 2
+  maxReplicas: 12
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: policy-service
+  namespace: ns-tier0
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: policy-service

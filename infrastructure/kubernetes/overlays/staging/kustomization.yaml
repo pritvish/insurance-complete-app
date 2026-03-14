@@ -1,0 +1,40 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../base
+
+namePrefix: staging-
+
+commonLabels:
+  environment: staging
+
+images:
+  - name: gcr.io/PROJECT_ID/customer-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/policy-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/premium-calc-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/claims-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/payment-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/billing-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/document-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/fraud-detection-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/notification-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/reference-data-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/broker-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/audit-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/analytics-service
+    newTag: staging-latest
+  - name: gcr.io/PROJECT_ID/workflow-orchestrator
+    newTag: staging-latest

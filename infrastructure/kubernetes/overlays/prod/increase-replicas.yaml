@@ -1,0 +1,7 @@
+# Tier-0 services: 3 replicas minimum in prod (multi-AZ)
+- op: replace
+  path: /spec/replicas
+  value: 3
+  target:
+    kind: Deployment
+    namespace: ns-tier0

@@ -1,0 +1,29 @@
+{
+  "type": "record",
+  "name": "PolicyIssued",
+  "namespace": "com.eip.events.policy",
+  "doc": "Emitted by policy-service when a policy transitions to ISSUED status.",
+  "fields": [
+    { "name": "eventId",        "type": "string" },
+    { "name": "eventType",      "type": "string", "default": "PolicyIssued" },
+    { "name": "occurredAt",     "type": "string", "doc": "ISO-8601 UTC timestamp" },
+    { "name": "correlationId",  "type": ["null", "string"], "default": null },
+    { "name": "policyId",       "type": "string", "doc": "UUID of the policy" },
+    { "name": "policyNumber",   "type": "string", "doc": "Human-readable policy number, e.g. POL-2024-000001" },
+    { "name": "customerId",     "type": "string" },
+    { "name": "brokerId",       "type": ["null", "string"], "default": null },
+    { "name": "productCode",    "type": "string", "doc": "e.g. AUTO, HOME, LIFE, COMMERCIAL" },
+    { "name": "lineOfBusiness", "type": "string" },
+    { "name": "premiumAmount",  "type": { "type": "bytes", "logicalType": "decimal",
+                                           "precision": 15, "scale": 2 },
+                                 "doc": "Annual premium in USD" },
+    { "name": "coverageAmount", "type": { "type": "bytes", "logicalType": "decimal",
+                                           "precision": 15, "scale": 2 } },
+    { "name": "effectiveDate",  "type": "string", "doc": "ISO-8601 date" },
+    { "name": "expirationDate", "type": "string", "doc": "ISO-8601 date" },
+    { "name": "issuedAt",       "type": "string", "doc": "ISO-8601 UTC timestamp" },
+    { "name": "state",          "type": "string", "doc": "2-letter US state of risk" },
+    { "name": "previousPolicyId", "type": ["null", "string"], "default": null,
+      "doc": "Set when this is a renewal" }
+  ]
+}

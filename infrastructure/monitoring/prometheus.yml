@@ -1,0 +1,136 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: eip-local
+    env:     development
+
+# ─── Alerting ─────────────────────────────────────────────────────────────────
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# ─── Rules ────────────────────────────────────────────────────────────────────
+rule_files: []
+
+# ─── Scrape configs ───────────────────────────────────────────────────────────
+scrape_configs:
+
+  # Prometheus self-monitoring
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ── Spring Boot services ────────────────────────────────────────────────────
+  - job_name: customer-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['customer-service:8081']
+        labels:
+          service: customer-service
+          tier: tier0
+
+  - job_name: policy-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['policy-service:8082']
+        labels:
+          service: policy-service
+          tier: tier0
+
+  - job_name: premium-calc-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['premium-calc-service:8083']
+        labels:
+          service: premium-calc-service
+          tier: tier1
+
+  - job_name: claims-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['claims-service:8084']
+        labels:
+          service: claims-service
+          tier: tier0
+
+  - job_name: payment-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['payment-service:8085']
+        labels:
+          service: payment-service
+          tier: tier0
+
+  - job_name: billing-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['billing-service:8086']
+        labels:
+          service: billing-service
+          tier: tier1
+
+  - job_name: document-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['document-service:8087']
+        labels:
+          service: document-service
+          tier: tier2
+
+  - job_name: fraud-detection-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['fraud-detection-service:8088']
+        labels:
+          service: fraud-detection-service
+          tier: tier1
+
+  - job_name: notification-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['notification-service:8089']
+        labels:
+          service: notification-service
+          tier: tier2
+
+  - job_name: reference-data-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['reference-data-service:8090']
+        labels:
+          service: reference-data-service
+          tier: tier1
+
+  - job_name: broker-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['broker-service:8091']
+        labels:
+          service: broker-service
+          tier: tier1
+
+  - job_name: audit-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['audit-service:8092']
+        labels:
+          service: audit-service
+          tier: tier2
+
+  - job_name: analytics-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['analytics-service:8093']
+        labels:
+          service: analytics-service
+          tier: analytics
+
+  - job_name: workflow-orchestrator
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['workflow-orchestrator:8094']
+        labels:
+          service: workflow-orchestrator
+          tier: tier1

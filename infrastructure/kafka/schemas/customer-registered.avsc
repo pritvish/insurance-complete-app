@@ -1,0 +1,36 @@
+{
+  "type": "record",
+  "name": "CustomerRegistered",
+  "namespace": "com.eip.events.customer",
+  "doc": "Emitted by customer-service when a new customer is successfully registered.",
+  "fields": [
+    { "name": "eventId",      "type": "string", "doc": "UUID of this event instance" },
+    { "name": "eventType",    "type": "string", "default": "CustomerRegistered" },
+    { "name": "occurredAt",   "type": "string", "doc": "ISO-8601 UTC timestamp" },
+    { "name": "correlationId","type": ["null", "string"], "default": null },
+    { "name": "customerId",   "type": "string", "doc": "UUID of the newly created customer" },
+    { "name": "firstName",    "type": "string" },
+    { "name": "lastName",     "type": "string" },
+    { "name": "email",        "type": "string" },
+    { "name": "dateOfBirth",  "type": "string", "doc": "ISO-8601 date (YYYY-MM-DD)" },
+    { "name": "phoneNumber",  "type": ["null", "string"], "default": null },
+    {
+      "name": "address",
+      "type": {
+        "type": "record",
+        "name": "Address",
+        "fields": [
+          { "name": "street",     "type": "string" },
+          { "name": "city",       "type": "string" },
+          { "name": "state",      "type": "string", "doc": "2-letter US state code" },
+          { "name": "zipCode",    "type": "string" },
+          { "name": "country",    "type": "string", "default": "US" }
+        ]
+      }
+    },
+    { "name": "kycStatus",    "type": { "type": "enum", "name": "KycStatus",
+                                        "symbols": ["PENDING", "IN_PROGRESS", "APPROVED", "REJECTED"] },
+                               "default": "PENDING" },
+    { "name": "sourceIp",     "type": ["null", "string"], "default": null }
+  ]
+}

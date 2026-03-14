@@ -1,0 +1,11 @@
+# Dev environment — copy to terraform.tfvars and fill in real values
+# terraform.tfvars is gitignored; this example file is committed.
+
+project_id       = "your-gcp-project-id"
+region           = "us-central1"
+environment      = "dev"
+cluster_name     = "eip-cluster"
+db_user          = "eip_user"
+db_password      = "REPLACE_WITH_STRONG_PASSWORD"
+gke_node_count   = 1
+gke_machine_type = "e2-standard-2"

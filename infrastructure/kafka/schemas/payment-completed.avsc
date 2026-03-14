@@ -1,0 +1,30 @@
+{
+  "type": "record",
+  "name": "PaymentCompleted",
+  "namespace": "com.eip.events.payment",
+  "doc": "Emitted by payment-service when a payment is successfully processed (premium or claim).",
+  "fields": [
+    { "name": "eventId",         "type": "string" },
+    { "name": "eventType",       "type": "string", "default": "PaymentCompleted" },
+    { "name": "occurredAt",      "type": "string", "doc": "ISO-8601 UTC timestamp" },
+    { "name": "correlationId",   "type": ["null", "string"], "default": null },
+    { "name": "paymentId",       "type": "string", "doc": "UUID of the payment record" },
+    { "name": "idempotencyKey",  "type": "string", "doc": "Client-supplied idempotency key" },
+    { "name": "paymentType",     "type": { "type": "enum", "name": "PaymentType",
+                                            "symbols": ["PREMIUM_COLLECTION", "CLAIM_DISBURSEMENT",
+                                                        "REFUND", "COMMISSION"] } },
+    { "name": "policyId",        "type": ["null", "string"], "default": null },
+    { "name": "claimId",         "type": ["null", "string"], "default": null },
+    { "name": "customerId",      "type": "string" },
+    { "name": "amount",          "type": { "type": "bytes", "logicalType": "decimal",
+                                            "precision": 15, "scale": 2 } },
+    { "name": "currency",        "type": "string", "default": "USD" },
+    { "name": "paymentMethod",   "type": { "type": "enum", "name": "PaymentMethod",
+                                            "symbols": ["CREDIT_CARD", "ACH", "CHECK",
+                                                        "WIRE_TRANSFER", "STRIPE"] } },
+    { "name": "stripeChargeId",  "type": ["null", "string"], "default": null },
+    { "name": "processedAt",     "type": "string", "doc": "ISO-8601 UTC timestamp" },
+    { "name": "billingPeriod",   "type": ["null", "string"], "default": null,
+      "doc": "e.g. 2024-01 for monthly billing" }
+  ]
+}

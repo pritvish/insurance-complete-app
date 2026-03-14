@@ -1,0 +1,129 @@
+# Deny all ingress/egress by default within each namespace,
+# then explicitly allow only the required cross-namespace traffic.
+
+# ── ns-tier0: allow ingress from ns-tier1 and ns-infra ───────────────────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: ns-tier0
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-tier0-ingress
+  namespace: ns-tier0
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: "1"
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: infra
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: observability
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: infra    # Kafka, Keycloak, Redis
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: "1"
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: observability
+    # Allow DNS
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+# ── ns-tier1: allow ingress from ns-tier0 and ns-tier2 ───────────────────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: ns-tier1
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-tier1-ingress
+  namespace: ns-tier1
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: "0"
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: "2"
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: infra
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: observability
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: "0"
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: infra
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: observability
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+# ── ns-tier2 and ns-analytics: allow ingress from ns-infra and observability ─
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-tier2-ingress
+  namespace: ns-tier2
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: infra
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: observability
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: infra
+        - namespaceSelector:
+            matchLabels:
+              eip/tier: observability
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP

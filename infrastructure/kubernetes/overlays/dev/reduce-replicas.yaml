@@ -1,0 +1,7 @@
+# In dev, run 1 replica per service to save cost
+- op: replace
+  path: /spec/replicas
+  value: 1
+  target:
+    kind: Deployment
+    labelSelector: "app.kubernetes.io/part-of=insurance-platform"

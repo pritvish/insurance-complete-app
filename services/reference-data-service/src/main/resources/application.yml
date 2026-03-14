@@ -1,0 +1,42 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: reference-data-service
+  datasource:
+    url: jdbc:postgresql://localhost:5441/reference_data_db
+    username: ${DB_USERNAME:eip_user}
+    password: ${DB_PASSWORD:eip_pass}
+    hikari:
+      maximum-pool-size: 5
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWK_URI:http://localhost:8080/realms/insurance/protocol/openid-connect/certs}
+  cache:
+    type: caffeine
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,caches
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    com.eip.referencedata: INFO

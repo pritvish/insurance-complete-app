@@ -1,0 +1,248 @@
+name: CD
+
+on:
+  push:
+    branches: [main]      # → deploys to dev automatically
+  release:
+    types: [published]    # → deploys to staging + prod (with approval gates)
+
+  # Manual trigger: choose environment
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options: [dev, staging, prod]
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false   # never cancel an in-flight deploy
+
+env:
+  GCP_REGION: us-central1
+  IMAGE_REGISTRY: gcr.io/${{ secrets.GCP_PROJECT_ID }}
+
+jobs:
+  # ── Build JARs ─────────────────────────────────────────────────────────────
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.tag.outputs.tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Compute image tag
+        id: tag
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "tag=${SHORT_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Build all JARs (skip tests — already run in CI)
+        run: ./mvnw clean package -DskipTests --no-transfer-progress -T 1C
+
+      - name: Upload JARs
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-jars
+          path: services/*/target/*.jar
+          retention-days: 1
+
+  # ── Build & push Docker images ─────────────────────────────────────────────
+  docker:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        service:
+          - customer-service
+          - policy-service
+          - premium-calc-service
+          - claims-service
+          - payment-service
+          - billing-service
+          - document-service
+          - fraud-detection-service
+          - notification-service
+          - reference-data-service
+          - broker-service
+          - audit-service
+          - analytics-service
+          - workflow-orchestrator
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download JARs
+        uses: actions/download-artifact@v4
+        with:
+          name: service-jars
+          path: services
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker gcr.io --quiet
+
+      - name: Build and push ${{ matrix.service }}
+        run: |
+          IMAGE="${{ env.IMAGE_REGISTRY }}/${{ matrix.service }}"
+          TAG="${{ needs.build.outputs.image-tag }}"
+          docker build \
+            --build-arg JAR_FILE=services/${{ matrix.service }}/target/${{ matrix.service }}-1.0.0.jar \
+            --tag "${IMAGE}:${TAG}" \
+            --tag "${IMAGE}:latest" \
+            --cache-from "${IMAGE}:latest" \
+            .
+          docker push "${IMAGE}:${TAG}"
+          docker push "${IMAGE}:latest"
+
+  # ── Deploy to dev ──────────────────────────────────────────────────────────
+  deploy-dev:
+    runs-on: ubuntu-latest
+    needs: docker
+    environment: dev
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: eip-cluster-dev
+          location: ${{ env.GCP_REGION }}
+
+      - name: Update image tags in kustomize overlay
+        run: |
+          TAG="${{ needs.build.outputs.image-tag }}"
+          cd infrastructure/kubernetes/overlays/dev
+          # Update all image tags to the new SHA
+          for SERVICE in customer-service policy-service premium-calc-service claims-service \
+            payment-service billing-service document-service fraud-detection-service \
+            notification-service reference-data-service broker-service audit-service \
+            analytics-service workflow-orchestrator; do
+            kustomize edit set image \
+              gcr.io/${{ secrets.GCP_PROJECT_ID }}/${SERVICE}=gcr.io/${{ secrets.GCP_PROJECT_ID }}/${SERVICE}:${TAG}
+          done
+
+      - name: Deploy to dev
+        run: kubectl apply -k infrastructure/kubernetes/overlays/dev
+
+      - name: Wait for rollout
+        run: |
+          NAMESPACES="ns-tier0 ns-tier1 ns-tier2 ns-analytics"
+          for NS in $NAMESPACES; do
+            kubectl rollout status deployment --namespace=$NS --timeout=300s || true
+          done
+
+  # ── Deploy to staging ──────────────────────────────────────────────────────
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [docker, deploy-dev]
+    environment: staging     # ← requires manual approval in GitHub UI
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: eip-cluster-staging
+          location: ${{ env.GCP_REGION }}
+
+      - name: Update image tags
+        run: |
+          TAG="${{ needs.build.outputs.image-tag }}"
+          cd infrastructure/kubernetes/overlays/staging
+          for SERVICE in customer-service policy-service premium-calc-service claims-service \
+            payment-service billing-service document-service fraud-detection-service \
+            notification-service reference-data-service broker-service audit-service \
+            analytics-service workflow-orchestrator; do
+            kustomize edit set image \
+              gcr.io/${{ secrets.GCP_PROJECT_ID }}/${SERVICE}=gcr.io/${{ secrets.GCP_PROJECT_ID }}/${SERVICE}:${TAG}
+          done
+
+      - name: Deploy to staging
+        run: kubectl apply -k infrastructure/kubernetes/overlays/staging
+
+      - name: Wait for rollout
+        run: |
+          for NS in ns-tier0 ns-tier1 ns-tier2 ns-analytics; do
+            kubectl rollout status deployment --namespace=$NS --timeout=300s || true
+          done
+
+  # ── Deploy to prod ─────────────────────────────────────────────────────────
+  deploy-prod:
+    runs-on: ubuntu-latest
+    needs: [docker, deploy-staging]
+    environment: prod        # ← requires 2 approvals + wait timer in GitHub UI
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: eip-cluster-prod
+          location: ${{ env.GCP_REGION }}
+
+      - name: Update image tags
+        run: |
+          TAG="${{ needs.build.outputs.image-tag }}"
+          cd infrastructure/kubernetes/overlays/prod
+          for SERVICE in customer-service policy-service premium-calc-service claims-service \
+            payment-service billing-service document-service fraud-detection-service \
+            notification-service reference-data-service broker-service audit-service \
+            analytics-service workflow-orchestrator; do
+            kustomize edit set image \
+              gcr.io/${{ secrets.GCP_PROJECT_ID }}/${SERVICE}=gcr.io/${{ secrets.GCP_PROJECT_ID }}/${SERVICE}:${TAG}
+          done
+
+      - name: Deploy to prod
+        run: kubectl apply -k infrastructure/kubernetes/overlays/prod
+
+      - name: Wait for rollout (tier-0 only — most critical)
+        run: |
+          kubectl rollout status deployment --namespace=ns-tier0 --timeout=600s
+
+      - name: Verify prod health
+        run: |
+          echo "Checking service health endpoints..."
+          for PORT in 8081 8082 8084 8085; do
+            kubectl run health-check-${PORT} \
+              --image=curlimages/curl:latest \
+              --restart=Never \
+              --rm \
+              --namespace=ns-tier0 \
+              -- curl -sf http://$(kubectl get svc -n ns-tier0 -o jsonpath="{.items[?(@.spec.ports[0].port==${PORT})].metadata.name}"):${PORT}/actuator/health \
+              && echo "Port ${PORT} healthy" || echo "Port ${PORT} check failed"
+          done

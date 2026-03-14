@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns-tier0
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    eip/tier: "0"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns-tier1
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    eip/tier: "1"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns-tier2
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    eip/tier: "2"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns-analytics
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    eip/tier: analytics
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns-infra
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    eip/tier: infra
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns-observability
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    eip/tier: observability

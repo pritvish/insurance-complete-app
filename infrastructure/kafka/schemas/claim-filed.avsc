@@ -1,0 +1,42 @@
+{
+  "type": "record",
+  "name": "ClaimFiled",
+  "namespace": "com.eip.events.claims",
+  "doc": "Emitted by claims-service when a First Notice of Loss (FNOL) is submitted.",
+  "fields": [
+    { "name": "eventId",        "type": "string" },
+    { "name": "eventType",      "type": "string", "default": "ClaimFiled" },
+    { "name": "occurredAt",     "type": "string", "doc": "ISO-8601 UTC timestamp" },
+    { "name": "correlationId",  "type": ["null", "string"], "default": null },
+    { "name": "claimId",        "type": "string", "doc": "UUID of the claim" },
+    { "name": "claimNumber",    "type": "string", "doc": "Human-readable, e.g. CLM-2024-000001" },
+    { "name": "policyId",       "type": "string" },
+    { "name": "customerId",     "type": "string" },
+    { "name": "claimType",      "type": { "type": "enum", "name": "ClaimType",
+                                           "symbols": ["AUTO_COLLISION", "AUTO_COMPREHENSIVE",
+                                                       "PROPERTY_DAMAGE", "LIABILITY",
+                                                       "MEDICAL", "LIFE", "OTHER"] } },
+    { "name": "incidentDate",   "type": "string", "doc": "ISO-8601 date of the loss event" },
+    { "name": "incidentDescription", "type": "string" },
+    { "name": "filedAmount",    "type": { "type": "bytes", "logicalType": "decimal",
+                                           "precision": 15, "scale": 2 },
+                                 "doc": "Claimant's requested amount in USD" },
+    { "name": "filedAt",        "type": "string", "doc": "ISO-8601 UTC timestamp" },
+    { "name": "reportedByAgent","type": ["null", "string"], "default": null,
+      "doc": "Agent/broker userId if filed through broker portal" },
+    {
+      "name": "incidentLocation",
+      "type": ["null", {
+        "type": "record",
+        "name": "Location",
+        "fields": [
+          { "name": "street",  "type": ["null", "string"], "default": null },
+          { "name": "city",    "type": ["null", "string"], "default": null },
+          { "name": "state",   "type": ["null", "string"], "default": null },
+          { "name": "zipCode", "type": ["null", "string"], "default": null }
+        ]
+      }],
+      "default": null
+    }
+  ]
+}

@@ -1,0 +1,912 @@
+version: '3.8'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Enterprise Insurance Platform — Local Development Environment
+#
+# Prerequisites:
+#   ./mvnw clean package -DskipTests   (build all JARs first)
+#   make docker-up                     (starts infra, waits, creates Kafka topics)
+#
+# Port summary:
+#   Keycloak:        8080   Kafka-1:  29092  Redis:      6379
+#   Kafka UI:        9090   Kafka-2:  29093  Prometheus: 9091
+#   Grafana:         3000   Kafka-3:  29094  Jaeger:     16686
+#   Schema Registry: (internal only, kafka cluster)
+#   Services:        8081–8094 (see service definitions below)
+# ─────────────────────────────────────────────────────────────────────────────
+
+x-kafka-common: &kafka-common
+  image: bitnami/kafka:3.6
+  networks: [eip-network]
+  restart: unless-stopped
+
+x-service-common: &service-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  networks: [eip-network]
+  restart: unless-stopped
+  environment: &service-env-common
+    KAFKA_BOOTSTRAP: kafka-1:9092,kafka-2:9092,kafka-3:9092
+    KAFKA_BOOTSTRAP_SERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+    KEYCLOAK_JWK_URI: http://keycloak:8080/realms/insurance/protocol/openid-connect/certs
+    DB_USER: eip_user
+    DB_USERNAME: eip_user
+    DB_PASSWORD: eip_pass
+
+# ─────────────────────────────────────────────────────────────────────────────
+networks:
+  eip-network:
+    driver: bridge
+
+# ─────────────────────────────────────────────────────────────────────────────
+volumes:
+  # PostgreSQL (one per service)
+  pg-customer-data:
+  pg-policy-data:
+  pg-premiumcalc-data:
+  pg-claims-data:
+  pg-payment-data:
+  pg-billing-data:
+  pg-document-data:
+  pg-fraud-data:
+  pg-notification-data:
+  pg-referencedata-data:
+  pg-broker-data:
+  pg-audit-data:
+  pg-analytics-data:
+  pg-workflow-data:
+  # Infrastructure
+  kafka-1-data:
+  kafka-2-data:
+  kafka-3-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # KAFKA — 3-node KRaft cluster (no ZooKeeper)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  kafka-1:
+    <<: *kafka-common
+    container_name: kafka-1
+    hostname: kafka-1
+    ports:
+      - "29092:29092"
+    volumes:
+      - kafka-1-data:/bitnami/kafka
+    environment:
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_KRAFT_CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:29092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092,EXTERNAL://localhost:29092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_CFG_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_CFG_MIN_INSYNC_REPLICAS: 2
+      KAFKA_CFG_LOG_RETENTION_HOURS: 168
+      KAFKA_CFG_MESSAGE_MAX_BYTES: 10485760
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 45s
+
+  kafka-2:
+    <<: *kafka-common
+    container_name: kafka-2
+    hostname: kafka-2
+    ports:
+      - "29093:29093"
+    volumes:
+      - kafka-2-data:/bitnami/kafka
+    environment:
+      KAFKA_CFG_NODE_ID: 2
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_KRAFT_CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:29093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092,EXTERNAL://localhost:29093
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_CFG_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_CFG_MIN_INSYNC_REPLICAS: 2
+      KAFKA_CFG_LOG_RETENTION_HOURS: 168
+      KAFKA_CFG_MESSAGE_MAX_BYTES: 10485760
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 45s
+
+  kafka-3:
+    <<: *kafka-common
+    container_name: kafka-3
+    hostname: kafka-3
+    ports:
+      - "29094:29094"
+    volumes:
+      - kafka-3-data:/bitnami/kafka
+    environment:
+      KAFKA_CFG_NODE_ID: 3
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_KRAFT_CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:29094
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092,EXTERNAL://localhost:29094
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_CFG_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_CFG_MIN_INSYNC_REPLICAS: 2
+      KAFKA_CFG_LOG_RETENTION_HOURS: 168
+      KAFKA_CFG_MESSAGE_MAX_BYTES: 10485760
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 45s
+
+  # ─── Schema Registry (internal only — accessed by services at schema-registry:8085) ───
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    container_name: schema-registry
+    hostname: schema-registry
+    networks: [eip-network]
+    restart: unless-stopped
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8085
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: 3
+      SCHEMA_REGISTRY_DEBUG: "false"
+    depends_on:
+      kafka-1: { condition: service_healthy }
+      kafka-2: { condition: service_healthy }
+      kafka-3: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8085/subjects || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # ─── Kafka UI ───
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    networks: [eip-network]
+    ports:
+      - "9090:8080"
+    restart: unless-stopped
+    environment:
+      KAFKA_CLUSTERS_0_NAME: eip-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8085
+      DYNAMIC_CONFIG_ENABLED: "true"
+    depends_on:
+      schema-registry: { condition: service_healthy }
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # POSTGRESQL — 14 dedicated instances
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  postgres-customer:
+    image: postgres:16-alpine
+    container_name: postgres-customer
+    networks: [eip-network]
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-customer-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: customer_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d customer_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-policy:
+    image: postgres:16-alpine
+    container_name: postgres-policy
+    networks: [eip-network]
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg-policy-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: policy_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d policy_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-premiumcalc:
+    image: postgres:16-alpine
+    container_name: postgres-premiumcalc
+    networks: [eip-network]
+    ports:
+      - "5445:5432"
+    volumes:
+      - pg-premiumcalc-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: premium_calc_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d premium_calc_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-claims:
+    image: postgres:16-alpine
+    container_name: postgres-claims
+    networks: [eip-network]
+    ports:
+      - "5434:5432"
+    volumes:
+      - pg-claims-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: claims_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d claims_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-payment:
+    image: postgres:16-alpine
+    container_name: postgres-payment
+    networks: [eip-network]
+    ports:
+      - "5435:5432"
+    volumes:
+      - pg-payment-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: payment_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d payment_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-billing:
+    image: postgres:16-alpine
+    container_name: postgres-billing
+    networks: [eip-network]
+    ports:
+      - "5436:5432"
+    volumes:
+      - pg-billing-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: billing_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d billing_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-document:
+    image: postgres:16-alpine
+    container_name: postgres-document
+    networks: [eip-network]
+    ports:
+      - "5438:5432"
+    volumes:
+      - pg-document-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: document_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d document_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-fraud:
+    image: postgres:16-alpine
+    container_name: postgres-fraud
+    networks: [eip-network]
+    ports:
+      - "5437:5432"
+    volumes:
+      - pg-fraud-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: fraud_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d fraud_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-notification:
+    image: postgres:16-alpine
+    container_name: postgres-notification
+    networks: [eip-network]
+    ports:
+      - "5440:5432"
+    volumes:
+      - pg-notification-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: notification_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d notification_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-referencedata:
+    image: postgres:16-alpine
+    container_name: postgres-referencedata
+    networks: [eip-network]
+    ports:
+      - "5441:5432"
+    volumes:
+      - pg-referencedata-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: reference_data_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d reference_data_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-broker:
+    image: postgres:16-alpine
+    container_name: postgres-broker
+    networks: [eip-network]
+    ports:
+      - "5442:5432"
+    volumes:
+      - pg-broker-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: broker_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d broker_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-audit:
+    image: postgres:16-alpine
+    container_name: postgres-audit
+    networks: [eip-network]
+    ports:
+      - "5443:5432"
+    volumes:
+      - pg-audit-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: audit_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d audit_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-analytics:
+    image: postgres:16-alpine
+    container_name: postgres-analytics
+    networks: [eip-network]
+    ports:
+      - "5444:5432"
+    volumes:
+      - pg-analytics-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: analytics_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d analytics_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-workflow:
+    image: postgres:16-alpine
+    container_name: postgres-workflow
+    networks: [eip-network]
+    ports:
+      - "5446:5432"
+    volumes:
+      - pg-workflow-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eip_user
+      POSTGRES_PASSWORD: eip_pass
+      POSTGRES_DB: workflow_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eip_user -d workflow_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # REDIS — velocity counters for fraud-detection-service
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    networks: [eip-network]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # KEYCLOAK — Identity provider, realm: insurance
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: keycloak
+    networks: [eip-network]
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+    command: start-dev --import-realm
+    volumes:
+      - ./infrastructure/keycloak:/opt/keycloak/data/import
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # OBSERVABILITY — Prometheus, Grafana, Jaeger
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  prometheus:
+    image: prom/prometheus:v2.49.1
+    container_name: prometheus
+    networks: [eip-network]
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.3.1
+    container_name: grafana
+    networks: [eip-network]
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_FEATURE_TOGGLES_ENABLE: traceToMetrics
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.54
+    container_name: jaeger
+    networks: [eip-network]
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC
+      - "4318:4318"     # OTLP HTTP
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      SPAN_STORAGE_TYPE: memory
+      MEMORY_MAX_TRACES: 100000
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # SPRING BOOT SERVICES
+  # All services override SPRING_DATASOURCE_URL to reach their postgres
+  # container (internal Docker name) rather than localhost.
+  # Both DB_USER/DB_USERNAME are set to handle different app.yml patterns.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  customer-service:
+    <<: *service-common
+    container_name: customer-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/customer-service/target/customer-service-1.0.0.jar
+    ports:
+      - "8081:8081"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-customer:5432/customer_db
+    depends_on:
+      postgres-customer: { condition: service_healthy }
+      kafka-1:           { condition: service_healthy }
+      keycloak:          { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  policy-service:
+    <<: *service-common
+    container_name: policy-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/policy-service/target/policy-service-1.0.0.jar
+    ports:
+      - "8082:8082"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-policy:5432/policy_db
+      PREMIUM_CALC_URL: http://premium-calc-service:8083
+    depends_on:
+      postgres-policy:  { condition: service_healthy }
+      kafka-1:          { condition: service_healthy }
+      keycloak:         { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  premium-calc-service:
+    <<: *service-common
+    container_name: premium-calc-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/premium-calc-service/target/premium-calc-service-1.0.0.jar
+    ports:
+      - "8083:8083"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-premiumcalc:5432/premium_calc_db
+    depends_on:
+      postgres-premiumcalc: { condition: service_healthy }
+      kafka-1:              { condition: service_healthy }
+      keycloak:             { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  claims-service:
+    <<: *service-common
+    container_name: claims-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/claims-service/target/claims-service-1.0.0.jar
+    ports:
+      - "8084:8084"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-claims:5432/claims_db
+    depends_on:
+      postgres-claims: { condition: service_healthy }
+      kafka-1:         { condition: service_healthy }
+      keycloak:        { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8084/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  payment-service:
+    <<: *service-common
+    container_name: payment-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/payment-service/target/payment-service-1.0.0.jar
+    ports:
+      - "8085:8085"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-payment:5432/payment_db
+      STRIPE_API_KEY: ${STRIPE_API_KEY:-sk_test_placeholder}
+    depends_on:
+      postgres-payment: { condition: service_healthy }
+      kafka-1:          { condition: service_healthy }
+      keycloak:         { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8085/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  billing-service:
+    <<: *service-common
+    container_name: billing-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/billing-service/target/billing-service-1.0.0.jar
+    ports:
+      - "8086:8086"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-billing:5432/billing_db
+    depends_on:
+      postgres-billing: { condition: service_healthy }
+      kafka-1:          { condition: service_healthy }
+      keycloak:         { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8086/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  document-service:
+    <<: *service-common
+    container_name: document-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/document-service/target/document-service-1.0.0.jar
+    ports:
+      - "8087:8087"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-document:5432/document_db
+      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME:-eip-documents-local}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+    depends_on:
+      postgres-document: { condition: service_healthy }
+      kafka-1:           { condition: service_healthy }
+      keycloak:          { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8087/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  fraud-detection-service:
+    <<: *service-common
+    container_name: fraud-detection-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/fraud-detection-service/target/fraud-detection-service-1.0.0.jar
+    ports:
+      - "8088:8088"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-fraud:5432/fraud_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      postgres-fraud: { condition: service_healthy }
+      redis:          { condition: service_healthy }
+      kafka-1:        { condition: service_healthy }
+      keycloak:       { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8088/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  notification-service:
+    <<: *service-common
+    container_name: notification-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/notification-service/target/notification-service-1.0.0.jar
+    ports:
+      - "8089:8089"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notification:5432/notification_db
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-SG.placeholder}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-AC.placeholder}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-placeholder}
+    depends_on:
+      postgres-notification: { condition: service_healthy }
+      kafka-1:               { condition: service_healthy }
+      keycloak:              { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8089/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  reference-data-service:
+    <<: *service-common
+    container_name: reference-data-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/reference-data-service/target/reference-data-service-1.0.0.jar
+    ports:
+      - "8090:8090"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-referencedata:5432/reference_data_db
+    depends_on:
+      postgres-referencedata: { condition: service_healthy }
+      kafka-1:                { condition: service_healthy }
+      keycloak:               { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8090/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  broker-service:
+    <<: *service-common
+    container_name: broker-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/broker-service/target/broker-service-1.0.0.jar
+    ports:
+      - "8091:8091"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-broker:5432/broker_db
+    depends_on:
+      postgres-broker: { condition: service_healthy }
+      kafka-1:         { condition: service_healthy }
+      keycloak:        { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8091/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  audit-service:
+    <<: *service-common
+    container_name: audit-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/audit-service/target/audit-service-1.0.0.jar
+    ports:
+      - "8092:8092"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-audit:5432/audit_db
+    depends_on:
+      postgres-audit: { condition: service_healthy }
+      kafka-1:        { condition: service_healthy }
+      keycloak:       { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8092/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  analytics-service:
+    <<: *service-common
+    container_name: analytics-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/analytics-service/target/analytics-service-1.0.0.jar
+    ports:
+      - "8093:8093"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-analytics:5432/analytics_db
+    depends_on:
+      postgres-analytics: { condition: service_healthy }
+      kafka-1:            { condition: service_healthy }
+      keycloak:           { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8093/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  workflow-orchestrator:
+    <<: *service-common
+    container_name: workflow-orchestrator
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: services/workflow-orchestrator/target/workflow-orchestrator-1.0.0.jar
+    ports:
+      - "8094:8094"
+    environment:
+      <<: *service-env-common
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-workflow:5432/workflow_db
+    depends_on:
+      postgres-workflow: { condition: service_healthy }
+      kafka-1:           { condition: service_healthy }
+      keycloak:          { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8094/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s

@@ -1,0 +1,11 @@
+package com.eip.document.domain;
+
+public enum DocumentType {
+    POLICY_CERTIFICATE,
+    CLAIMS_SETTLEMENT_LETTER,
+    INVOICE,
+    RENEWAL_NOTICE,
+    CANCELLATION_NOTICE,
+    ENDORSEMENT_SCHEDULE,
+    KYC_CONFIRMATION
+}

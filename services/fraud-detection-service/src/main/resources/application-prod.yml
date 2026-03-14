@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 3
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+  jpa:
+    show-sql: false
+  data:
+    redis:
+      timeout: 500ms          # tighter timeout in prod — fail fast
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+
+logging:
+  level:
+    root: WARN
+    com.eip.fraud: INFO
+    org.springframework.security: WARN
+    org.springframework.kafka: WARN
+    org.springframework.data.redis: WARN
+    org.hibernate: WARN
+    org.flywaydb: INFO
