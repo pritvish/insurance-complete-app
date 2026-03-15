@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Interview Prep — Tier 2: Advanced Expert Concepts</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0e0c;--surface:#1a1916;--border:#2d2b26;--border-light:#3a3832;
+  --text:#f0ede6;--text-muted:#8a8680;--text-light:#5a5752;
+  --green:#4ade80;--green-bg:#052e16;--green-border:#166534;
+  --blue:#60a5fa;--blue-bg:#0a1628;--blue-border:#1d4ed8;
+  --amber:#fbbf24;--amber-bg:#1c1000;--amber-border:#92400e;
+  --red:#f87171;--red-bg:#1a0404;--red-border:#7f1d1d;
+  --purple:#c084fc;--purple-bg:#0f0520;--purple-border:#581c87;
+  --slate:#94a3b8;--slate-bg:#0f172a;--slate-border:#1e293b;
+}
+body{font-family:'Geist Mono',monospace;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+.page-header{background:linear-gradient(135deg,#1a1916 0%, #0f0e0c 100%);border-bottom:1px solid var(--border);padding:48px 40px 40px;position:relative;overflow:hidden}
+.page-header::before{content:'TIER 2';position:absolute;right:-20px;top:-20px;font-size:160px;font-family:'DM Serif Display',serif;color:rgba(255,255,255,0.015);pointer-events:none;line-height:1;letter-spacing:-10px}
+.tier-badge{display:inline-block;background:rgba(192,132,252,0.15);border:1px solid rgba(192,132,252,0.3);border-radius:4px;padding:4px 12px;font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:600;margin-bottom:16px;color:var(--purple)}
+.page-header h1{font-family:'DM Serif Display',serif;font-size:38px;font-weight:400;letter-spacing:-0.5px;margin-bottom:8px;color:var(--text)}
+.page-header .subtitle{font-size:12px;color:var(--text-muted);letter-spacing:1px}
+.meta-row{display:flex;gap:32px;margin-top:24px}
+.meta-item{font-size:11px;color:var(--text-muted)}
+.meta-item strong{color:var(--text);display:block;font-size:20px;margin-bottom:2px}
+.prereq-bar{background:var(--amber-bg);border-bottom:1px solid var(--amber-border);padding:12px 40px;font-size:12px;color:var(--amber)}
+.prereq-bar strong{font-weight:700}
+.toc-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 40px;display:flex;gap:0;overflow-x:auto}
+.toc-btn{flex-shrink:0;padding:14px 18px;font-size:11px;font-family:inherit;background:none;border:none;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.5px;font-weight:500}
+.toc-btn:hover,.toc-btn.active{color:var(--text);border-bottom-color:var(--purple)}
+.content{max-width:900px;margin:0 auto;padding:48px 40px}
+.concept{display:none;animation:fadeIn .3s ease}
+.concept.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.concept-header{margin-bottom:40px}
+.concept-number{font-size:11px;color:var(--text-light);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+.prereq-tag{display:inline-block;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:4px;padding:3px 10px;font-size:10px;color:var(--amber);letter-spacing:1px;margin-bottom:12px}
+.concept-title{font-family:'DM Serif Display',serif;font-size:36px;font-weight:400;letter-spacing:-0.5px;margin-bottom:12px;color:var(--text)}
+.concept-tagline{font-size:13px;color:var(--text-muted);line-height:1.7;max-width:680px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.section{margin-bottom:36px}
+.section-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.section-label.green{color:var(--green)}
+.section-label.blue{color:var(--blue)}
+.section-label.amber{color:var(--amber)}
+.section-label.red{color:var(--red)}
+.section-label.purple{color:var(--purple)}
+.insight-box{background:rgba(251,191,36,0.07);border:1px solid var(--amber-border);border-left:3px solid var(--amber);border-radius:8px;padding:16px 20px;margin-bottom:16px;font-size:13px;line-height:1.8}
+.insight-box .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--amber);margin-bottom:8px}
+.insight-box p{color:#fde68a}
+.gotcha-box{background:rgba(248,113,113,0.07);border:1px solid var(--red-border);border-left:3px solid var(--red);border-radius:8px;padding:16px 20px;margin-bottom:16px;font-size:13px;line-height:1.8}
+.gotcha-box .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--red);margin-bottom:8px}
+.gotcha-box p{color:#fca5a5}
+.pro-tip{background:rgba(74,222,128,0.07);border:1px solid var(--green-border);border-left:3px solid var(--green);border-radius:8px;padding:16px 20px;margin-bottom:16px;font-size:13px;line-height:1.8}
+.pro-tip .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--green);margin-bottom:8px}
+.pro-tip p{color:#86efac}
+.prose{font-size:13.5px;line-height:1.9;color:#c8c4bc;margin-bottom:16px}
+.prose strong{color:var(--text);font-weight:600}
+.diagram-wrap{background:var(--slate-bg);border:1px solid var(--slate-border);border-radius:10px;padding:28px;margin-bottom:24px;overflow-x:auto}
+.diagram-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--text-muted);margin-bottom:20px}
+.diagram{font-size:11.5px;line-height:1.8;white-space:pre;font-family:'Geist Mono',monospace;color:#94a3b8}
+.table-wrap{overflow-x:auto;margin-bottom:24px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:var(--border);color:var(--text);padding:10px 14px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.5px}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;color:#c8c4bc}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:rgba(255,255,255,0.02)}
+.qa-item{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px}
+.qa-q{background:var(--surface);padding:14px 18px;font-size:13px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--text)}
+.qa-q:hover{background:rgba(255,255,255,0.04)}
+.qa-chevron{font-size:10px;transition:transform .2s;color:var(--text-muted)}
+.qa-a{display:none;padding:14px 18px;background:rgba(0,0,0,0.3);border-top:1px solid var(--border);font-size:13px;line-height:1.8;color:#c8c4bc}
+.qa-a.open{display:block}
+.domain-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+@media(max-width:640px){.domain-grid{grid-template-columns:1fr}}
+.domain-card{border:1px solid var(--border);border-radius:8px;padding:18px;background:var(--surface)}
+.domain-card .domain-tag{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:10px}
+.domain-card.insurance .domain-tag{color:var(--blue)}
+.domain-card.ecomm .domain-tag{color:var(--purple)}
+.domain-card .domain-scenario{font-size:12.5px;line-height:1.8;color:#c8c4bc}
+.nav-footer{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border)}
+.nav-btn{font-family:inherit;font-size:12px;font-weight:600;padding:10px 20px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:all .15s}
+.nav-btn:hover{background:var(--border);color:var(--text)}
+.progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--purple);border-radius:2px;transition:width .3s ease}
+</style>
+</head>
+<body>
+<div class="page-header">
+  <div class="tier-badge">Tier 2 · Expert Level</div>
+  <h1>Advanced Distributed Systems &amp; Architecture</h1>
+  <p class="subtitle">Prerequisite: Tier 1 mastery assumed · Senior / Lead Engineer Level</p>
+  <div class="meta-row">
+    <div class="meta-item"><strong>25</strong>Expert Concepts</div>
+    <div class="meta-item"><strong>Tier 1</strong>Prerequisite</div>
+    <div class="meta-item"><strong>Deep</strong>Implementation Gotchas</div>
+    <div class="meta-item"><strong>150+</strong>Advanced Q&amp;As</div>
+  </div>
+</div>
+<div class="prereq-bar">⚠ <strong>Prerequisite:</strong> These concepts assume Tier 1 mastery (CAP Theorem, Circuit Breaker, Kafka basics, Redis, Kubernetes). Master Tier 1 first.</div>
+<div class="progress-bar"><div class="progress-fill" id="prog" style="width:4%"></div></div>
+<nav class="toc-bar" id="toc"></nav>
+<main class="content" id="main"></main>
+
+<script>
+const concepts = [
+{
+  id:'consensusalgo',
+  num:'01',
+  title:'Consensus Algorithms',
+  prereq:'CAP Theorem, Consistency Models',
+  tagline:'Distributed consensus is the hardest problem in distributed systems. Raft, Paxos, and PBFT solve it differently with different trade-offs. Systems built on these algorithms — etcd, Zookeeper, Kafka — inherit their properties.',
+  sections:[
+    {type:'prose',label:'Why Consensus Is Hard',color:'blue',text:`The fundamental challenge: in a distributed system with potential node failures, network partitions, and message delays, how do you get multiple nodes to agree on a single value? The <strong>FLP Impossibility Theorem</strong> proves it's theoretically impossible in a purely asynchronous system if even one node can fail. In practice, we use timeouts (assuming partial synchrony) to make consensus practical — accepting that the algorithm may block temporarily rather than making incorrect decisions.`},
+    {type:'diagram',title:'Raft Consensus — Leader Election & Log Replication',diagram:`
+  RAFT: Understandable Consensus
+
+  PHASES:
+  1. LEADER ELECTION
+  ┌───────────────────────────────────────────────────────────┐
+  │  All nodes start as Followers.                            │
+  │  If no heartbeat from leader within election timeout      │
+  │  (150-300ms), Follower becomes Candidate.                 │
+  │  Candidate votes for itself, requests votes from others.  │
+  │  First to receive majority becomes Leader.                │
+  │  Leader sends heartbeats to suppress new elections.       │
+  └───────────────────────────────────────────────────────────┘
+
+  ROLES:       FOLLOWER ──► CANDIDATE ──► LEADER
+                   ▲            │           │
+                   └────────────┴───────────┘
+                   (heartbeat or step-down)
+
+  2. LOG REPLICATION
+  ┌────────────┐     AppendEntries     ┌────────────┐
+  │  Leader    │ ──────────────────►  │ Follower 1 │
+  │  (writes)  │                      │            │
+  │            │ ──────────────────►  │ Follower 2 │
+  └────────────┘                      └────────────┘
+       │
+       │ Entry committed when majority acknowledge
+       │ (2/3 nodes in 3-node cluster)
+       ▼
+  Entry applied to state machine
+
+  KEY PROPERTIES:
+  • Terms: logical clock that increments on each election
+  • Only Leader accepts writes
+  • Log entries flow in one direction: Leader → Followers
+  • Safety: committed entries survive leader changes
+  • Liveness: elects new leader if current fails (eventual)`},
+    {type:'insight',text:`<strong>The expert question you'll face:</strong> "What happens during a network partition in a Raft cluster?" Answer: The partition creates two sides. The side with the majority of nodes (quorum) elects a new leader and continues. The minority side can't elect a leader (can't reach quorum) and stops accepting writes. When the partition heals, the minority nodes sync from the majority leader. This is CP behaviour — availability is sacrificed during partition to preserve consistency.`},
+    {type:'table',title:'Consensus Algorithm Comparison',headers:['Algorithm','Understandability','Performance','Fault Tolerance','Production Use'],rows:[
+      ['Raft','High — designed for clarity','Good (single leader)','Tolerates (N-1)/2 failures','etcd, CockroachDB, TiKV, Consul'],
+      ['Multi-Paxos','Low — notoriously complex','Similar to Raft','Same guarantees','Google Chubby, Zookeeper (ZAB variant)'],
+      ['PBFT','Medium','Low (O(n²) messages)','Tolerates Byzantine faults','Blockchain, safety-critical systems'],
+      ['Viewstamped Replication','Medium','Good','Same as Raft','Academic foundation for Raft'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Config Management:</strong> etcd (Raft-based) stores critical configuration for the insurance platform — rate tables, product eligibility rules, API keys. etcd's strong consistency means all microservices read the same config at the same time. Leader election is automatic: if the primary etcd node fails, a new leader is elected in < 1 second without human intervention.`,ecomm:`<strong>Distributed Shopping Cart Lock:</strong> Redis Cluster uses Raft-like replication per shard. Cart service uses Redlock (multi-shard distributed lock) for flash sale inventory allocation. The quorum requirement (3 of 5 Redis nodes must accept) means the lock is safe even if up to 2 nodes are unreachable — consensus guarantees exactly-once inventory allocation.`},
+    {type:'qa',items:[
+      {q:'What is split-brain and how does Raft prevent it?',a:'Split-brain: two nodes both believe they are the leader and accept writes independently, causing data divergence. Raft prevents this with terms and quorum. A leader can only write if it receives acknowledgement from a majority. In a partition, only the majority side can achieve quorum — the minority side\'s "leader" cannot commit writes because it can\'t reach quorum. Terms ensure a newly elected leader always has a higher term than the old one; stale leaders step down.'},
+      {q:'Why does etcd recommend an odd number of nodes?',a:'Quorum requires (N/2)+1 nodes. With 3 nodes, quorum=2 — tolerates 1 failure. With 4 nodes, quorum=3 — still tolerates only 1 failure, but you\'re running an extra node for no additional fault tolerance. With 5 nodes, quorum=3 — tolerates 2 failures. Odd numbers maximize fault tolerance per node count. 3 or 5 nodes is the typical production recommendation.'},
+    ]}
+  ]
+},
+{
+  id:'eventdriven',
+  num:'02',
+  title:'Event-Driven Architecture & Event Sourcing',
+  prereq:'Kafka Architecture, Saga Pattern',
+  tagline:'Event-driven architecture decouples services in time and space. Event sourcing rebuilds current state from an immutable event log — enabling perfect audit trails, temporal queries, and event replay.',
+  sections:[
+    {type:'prose',label:'Event-Driven vs Request-Driven',color:'blue',text:`In request-driven architecture, Service A calls Service B synchronously. A is coupled to B's availability, latency, and API contract. In event-driven architecture, Service A publishes an event to a broker; Service B consumes it asynchronously. A doesn't know B exists. This temporal decoupling enables independent scaling, independent deployment, and failure isolation. The trade-off: <strong>eventual consistency</strong> (B processes the event after A has moved on) and <strong>harder observability</strong> (distributed tracing across async flows is significantly more complex).`},
+    {type:'diagram',title:'Event Sourcing vs CRUD — State Representation',diagram:`
+  CRUD MODEL                       EVENT SOURCING MODEL
+
+  Current state in DB:              Event log in DB:
+  ┌─────────────────────┐           ┌─────────────────────────────┐
+  │ Policy Table         │           │ policy_events                │
+  │ id: P001            │           │ ───────────────────────────  │
+  │ status: active      │           │ {type: PolicyCreated,        │
+  │ premium: 1200       │           │  data: {id:P001, premium:1000}│
+  │ holder: John        │           │  timestamp: 2024-01-01}      │
+  └─────────────────────┘           │ {type: PremiumAdjusted,      │
+                                    │  data: {newPremium: 1200}    │
+  To answer "what was the           │  timestamp: 2024-03-15}      │
+  premium 3 months ago?"            │ {type: HolderUpdated,        │
+                                    │  data: {holder: "John"}      │
+  → Impossible with CRUD            │  timestamp: 2024-04-01}      │
+    (unless audit log added         └─────────────────────────────┘
+     separately)
+                                    Current state = replay all events
+                                    State at T = replay events up to T
+
+  PROJECTIONS: Read models built by consuming the event log
+  ┌──────────────────────────────────────────────────────────┐
+  │  PolicySummaryProjection: {id, status, premium}          │
+  │  PolicyHistoryProjection: [{date, change, actor}...]     │
+  │  ClaimsProjection: {policyId, openClaims, totalPaid}     │
+  │                                                          │
+  │  → Can rebuild any projection by replaying the log       │
+  │  → Can add NEW projections from existing history         │
+  └──────────────────────────────────────────────────────────┘`},
+    {type:'insight',text:`<strong>The CQRS insight:</strong> Event sourcing pairs naturally with CQRS (Command Query Responsibility Segregation). Commands (write operations) flow through the event log. Queries read from purpose-built, denormalised projections. This means read models are optimised for their specific query patterns without compromising the write model. A dashboard view and an audit view can be two independent projections consuming the same event stream.`},
+    {type:'gotcha',text:`<strong>Implementation Gotcha — Schema Evolution:</strong> Events are immutable — you can never change a published event. Schema evolution is the hardest operational challenge in event sourcing. Strategies: (1) Upcasters — transform old event format to new on read, (2) versioned event types (PolicyCreatedV1, PolicyCreatedV2), (3) weak schema (use Avro + Schema Registry with backward/forward compatibility rules). Failing to plan for this upfront results in painful migrations.`},
+    {type:'table',title:'Event-Driven Patterns — When to Use Each',headers:['Pattern','What It Is','Best For','Avoid When'],rows:[
+      ['Event Notification','Service publishes thin event (ID + type), consumers fetch details','Simple fan-out, loose coupling','High-frequency events where extra fetch is costly'],
+      ['Event-Carried State Transfer','Event contains full state change (before/after)','Consumers need all data without extra calls','Very large payloads, tight coupling on schema'],
+      ['Event Sourcing','All state changes recorded as events; current state derived','Audit-critical systems, temporal queries','Simple CRUD apps; significant complexity cost'],
+      ['CQRS','Separate read and write models','High-read systems needing optimised queries','Simple domains; adds significant complexity'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Audit Trail:</strong> Insurance regulations require a complete, tamper-proof audit trail of all policy changes. Event sourcing is the natural fit — every premium change, coverage update, and status transition is an immutable event. Regulators can request "show the full history of policy P001" — this is a simple event log query. No audit table needed; it's built in.`,ecomm:`<strong>Order State Machine:</strong> OrderPlaced → PaymentRequested → PaymentConfirmed → InventoryReserved → Shipped → Delivered. Each transition is an event. If the shipping service is replaced, it consumes the same InventoryReserved events — the upstream services are unchanged. Re-running analytics on historical orders means replaying the event log into a new projection.`},
+    {type:'qa',items:[
+      {q:'How do you handle event ordering in a distributed system?',a:'Within a Kafka partition, ordering is guaranteed. Use a consistent partition key (policy-id, order-id) to ensure all events for an entity land in the same partition. Cross-entity ordering is the hard problem — use vector clocks or Lamport timestamps if true cross-entity ordering is needed. In most business systems, per-entity ordering (which Kafka provides with key-based partitioning) is sufficient.'},
+      {q:'What is the Outbox Pattern and why is it critical for event sourcing?',a:'The dual-write problem: saving to DB and publishing to Kafka are two separate operations. If DB write succeeds but Kafka publish fails, state and event log diverge. The Outbox Pattern: write the event to an "outbox" table in the same DB transaction as the business data. A separate relay process (Debezium, CDC) reads the outbox and publishes to Kafka. This gives you atomic write + event publication.'},
+    ]}
+  ]
+},
+{
+  id:'servicemesh',
+  num:'03',
+  title:'Service Mesh & mTLS',
+  prereq:'Kubernetes, Circuit Breaker, REST API Design',
+  tagline:'A service mesh moves cross-cutting concerns (traffic management, observability, security, retries) out of application code and into the infrastructure layer — enabling consistent policies without changing application logic.',
+  sections:[
+    {type:'prose',label:'What Problem It Solves',color:'blue',text:`In a microservices system, every service implements the same cross-cutting concerns independently: retries with backoff, circuit breakers, TLS, distributed tracing headers, timeout configuration. This is duplicated across every service, in every language, with inconsistent implementation. A service mesh externalises these concerns into a <strong>sidecar proxy</strong> (typically Envoy) injected alongside each pod. The application talks to localhost; the sidecar handles all network policy. This enables <strong>zero-trust security</strong> (mTLS between every service pair), <strong>consistent observability</strong> (metrics, traces without code changes), and <strong>traffic management</strong> (canary deployments, fault injection, circuit breaking at the infrastructure layer).`},
+    {type:'diagram',title:'Service Mesh Architecture — Sidecar Pattern',diagram:`
+  WITHOUT SERVICE MESH:               WITH SERVICE MESH (Istio):
+
+  Service A  ───────────►  Service B   Service A ──► Envoy Proxy
+  (app code handles                    Sidecar        │
+   retries, TLS, timeouts,                            │ mTLS
+   tracing manually)                                  ▼
+                                                  Envoy Proxy ──► Service B
+                                                  Sidecar
+
+  CONTROL PLANE (Istio Pilot):
+  ┌──────────────────────────────────────────────────────────┐
+  │  Manages and distributes routing rules to all sidecars   │
+  │  Service discovery → sidecar knows where all services    │
+  │  Traffic policies → retries, timeouts, circuit breaking  │
+  │  Certificate management → mTLS certs rotated            │
+  └──────────────────────────────────────────────────────────┘
+
+  DATA PLANE (Envoy Sidecars):
+  ┌──────────────────────────────────────────────────────────┐
+  │  Intercepts all inbound and outbound traffic             │
+  │  Enforces mTLS (mutual TLS) — both sides authenticate    │
+  │  Collects telemetry (latency, errors, traffic)           │
+  │  Applies circuit breaking, retries, rate limiting        │
+  │  Handles header propagation for distributed tracing      │
+  └──────────────────────────────────────────────────────────┘
+
+  mTLS FLOW:
+  Service A Sidecar ──[cert A]──► Service B Sidecar
+                    ◄─[cert B]──
+  Both sides authenticate. Traffic encrypted in transit.
+  Zero-trust: even pod-to-pod traffic within cluster is encrypted.`},
+    {type:'insight',text:`<strong>The implementation gotcha with mTLS:</strong> Many teams enable Istio and assume mTLS is automatic. It's not — you need PEER_AUTHENTICATION policies set to STRICT mode, otherwise Istio allows plaintext fallback. Without strict mode, a compromised pod that doesn't have a sidecar can still talk to services in plaintext. Always explicitly set STRICT mode and verify with istioctl check-inject.`},
+    {type:'table',title:'Service Mesh vs App-Level Implementation',headers:['Concern','App-Level (Resilience4j)','Service Mesh (Istio/Linkerd)','Verdict'],rows:[
+      ['Circuit Breaking','Per-service Resilience4j config','Envoy OutlierDetection policy','App-level for fine-grained; mesh for consistency'],
+      ['Retries','Resilience4j @Retry annotation','VirtualService retry policy','App-level safer (idempotency aware); mesh unaware of semantics'],
+      ['mTLS','TLS in app code (boilerplate)','Automatic sidecar injection','Mesh wins — consistent, no code changes'],
+      ['Distributed Tracing','Manual header propagation','Automatic span creation','Mesh for HTTP headers; still need app-level for business context'],
+      ['Traffic Splitting','Not easily possible in app code','VirtualService weighted routing','Mesh wins — zero-code canary deployments'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Platform Zero-Trust:</strong> Insurance platforms handle PII and financial data. Istio in STRICT mTLS mode means all pod-to-pod communication within the cluster is encrypted and mutually authenticated. No pod can impersonate another — each has a unique SPIFFE identity (X.509 cert). This satisfies compliance requirements (ISO 27001, IRDAI) without application-level TLS boilerplate.`,ecomm:`<strong>A/B Testing at Infra Layer:</strong> New recommendation engine deployed as v2. Istio VirtualService routes 10% of traffic to v2, 90% to v1, based on request headers or random sampling. No code change in calling services. Promotion to 50%/100% is a single kubectl apply. Canary is automatically rolled back if v2 error rate exceeds threshold (Istio alerting).`},
+    {type:'qa',items:[
+      {q:'What is SPIFFE and SPIRE and why do they matter for mTLS?',a:'SPIFFE (Secure Production Identity Framework For Everyone) defines a standard for workload identity in distributed systems. Each service gets a SPIFFE ID (URI like spiffe://cluster.local/ns/default/sa/order-service). SPIRE is the reference implementation that issues X.509 SVIDs (SPIFFE Verifiable Identity Documents). Istio uses SPIFFE internally. This matters because mTLS without workload identity just encrypts — it doesn\'t authenticate who is calling whom. SPIFFE provides the "who."'},
+      {q:'When should you NOT use a service mesh?',a:'Service meshes add operational complexity: Envoy sidecars add ~50ms to pod startup and ~5MB RAM each, control plane is a stateful component to operate, debugging Envoy config is non-trivial. Avoid for: small teams without platform engineering resources, simple services (< 10 pods), services where latency budget leaves no room for sidecar overhead. Start with app-level resilience patterns; add a mesh when organisational scale justifies the operational investment.'},
+    ]}
+  ]
+},
+{
+  id:'observability',
+  num:'04',
+  title:'Observability: Metrics, Traces & Logs',
+  prereq:'Kubernetes, Service Mesh basics',
+  tagline:'Monitoring tells you something is wrong. Observability tells you why. The three pillars — metrics, distributed traces, and structured logs — form a complete picture of system behaviour.',
+  sections:[
+    {type:'prose',label:'The Three Pillars',color:'blue',text:`<strong>Metrics</strong> (Prometheus/Micrometer): numeric time-series data aggregated across instances. Answers "how many?" and "how fast?". Great for alerting and dashboards. Cardinality is the constraint — too many unique label combinations explodes storage. <strong>Distributed Traces</strong> (Jaeger/Zipkin/OTEL): tracks a single request across multiple services, capturing timing at each hop. Answers "where is the latency?" and "which service is the bottleneck?". <strong>Logs</strong> (ELK/Loki): discrete events with context. Answers "what exactly happened?" and "what was the state when it failed?". They're complementary — use metrics to detect, traces to locate, logs to diagnose.`},
+    {type:'diagram',title:'Observability Stack — From Signal to Action',diagram:`
+  APPLICATION LAYER (Instrumentation)
+  ┌─────────────────────────────────────────────────────────────┐
+  │  Micrometer  →  exposes /actuator/prometheus endpoint       │
+  │  Spring Sleuth / OTEL SDK → creates trace spans            │
+  │  Logback + JSON format → structured log output             │
+  └──────────────────┬─────────────────────────────────────────┘
+                     │
+  COLLECTION LAYER
+  ┌─────────┐    ┌──────────┐    ┌────────────────────┐
+  │Prometheus│   │  Jaeger   │   │  Fluent Bit / Loki  │
+  │ (scrapes │   │ (receives │   │  (scrapes pod logs) │
+  │  metrics)│   │  traces)  │   │                     │
+  └────┬─────┘   └────┬──────┘   └─────────┬───────────┘
+       │              │                     │
+  STORAGE & QUERY
+  ┌────▼─────┐   ┌────▼──────┐   ┌─────────▼───────────┐
+  │ Prometheus│   │  Jaeger   │   │       Loki           │
+  │ TSDB     │   │  backend  │   │  (log aggregation)   │
+  └────┬─────┘   └────┬──────┘   └─────────┬───────────┘
+       │              │                     │
+  VISUALISATION / ALERTING
+  ┌────▼─────────────────────────────────────────────────┐
+  │              G R A F A N A                           │
+  │   Dashboards │ Alerts │ Trace viewer │ Log explorer  │
+  └──────────────────────────────────────────────────────┘
+
+  CORRELATION: trace_id in logs links traces to log events.
+  Click a span in Jaeger → jump to logs for that trace in Loki.`},
+    {type:'insight',text:`<strong>The SLO/SLI insight senior candidates use:</strong> Don't monitor metrics — define SLOs (Service Level Objectives) and alert on SLO burn rate. SLI (Service Level Indicator): the actual measurement (e.g., 99th percentile latency). SLO: the target (e.g., 99% of requests < 500ms over 30 days). Error budget: allowed failures before SLO breach. Alert when burn rate threatens the error budget — not on raw thresholds. This approach drastically reduces alert fatigue (no more "CPU > 80% for 5 minutes" alerts).`},
+    {type:'gotcha',text:`<strong>Implementation Gotcha — Cardinality Explosion:</strong> Adding high-cardinality labels to Prometheus metrics (user_id, request_id, order_id) creates millions of time series, crashing Prometheus. Labels should have bounded cardinality: HTTP method (5 values), status code (20 values), service name (100 values) are fine. User ID (millions) is not. Use distributed traces, not metrics, for per-request data.`},
+    {type:'table',title:'The Four Golden Signals (Google SRE)',headers:['Signal','Metric','Alert Threshold Approach','Tool'],rows:[
+      ['Latency','P50, P95, P99 response times','SLO-based: P99 < 500ms, alert on burn rate','Prometheus histograms, Grafana'],
+      ['Traffic','Requests per second','Anomaly detection: sudden drops (as bad as spikes)','Prometheus counter, rate()'],
+      ['Errors','Error rate (4xx, 5xx)','SLO-based: < 0.1% 5xx rate over 30 days','Prometheus counter, alert on burn rate'],
+      ['Saturation','CPU %, memory %, queue depth','Predictive: alert before 100% (e.g., > 80% sustained)','Prometheus, k8s metrics-server'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Claims SLA Monitoring:</strong> SLO: 95% of claims processed within 48 hours. SLI: time from ClaimSubmitted event to ClaimDecision event (measured via Kafka consumer lag + event timestamps). Grafana dashboard shows real-time percentage of claims meeting SLA. Alert fires when error budget (5% allowed to exceed 48h) is being consumed faster than sustainable rate — not when a single claim is slow.`,ecomm:`<strong>Checkout Latency Tracing:</strong> Checkout API P99 suddenly spikes from 200ms to 1.2s. Metrics show the problem is in the checkout service. Jaeger traces show that 95% of slow requests have a slow span in the "pricing-service" call. Jump from trace to Loki logs for that trace_id — logs show pricing service is making N+1 DB queries for cart items. Observability enabled root cause in < 5 minutes.`},
+    {type:'qa',items:[
+      {q:'What is the difference between RED and USE monitoring methods?',a:'RED (Request-Driven services): Rate, Errors, Duration — for services that receive requests. USE (Resource-focused): Utilisation, Saturation, Errors — for system resources (CPU, memory, network). USE is better for infrastructure monitoring; RED is better for service-level monitoring. Apply both: USE to understand resource constraints, RED to understand user-facing impact.'},
+      {q:'How do you implement distributed tracing without changing all existing code?',a:'Instrumentation can be done at multiple levels. (1) Agent-based: Java agent (OTEL Java agent) injects bytecode at startup — zero code changes required for Spring Boot, Kafka, JDBC, HTTP clients. (2) Auto-instrumentation: Spring Sleuth auto-instruments Spring components. (3) Manual instrumentation for custom business spans. The trace context (trace_id, span_id) is propagated via HTTP headers (W3C TraceContext standard) — as long as HTTP clients are instrumented, propagation is automatic.'},
+    ]}
+  ]
+},
+{
+  id:'ratelimiting',
+  num:'05',
+  title:'Rate Limiting Algorithms',
+  prereq:'Redis Architecture, REST API Design',
+  tagline:'Rate limiting protects your service from abuse, accidental overload, and fair resource allocation. The choice of algorithm determines precision, burst behaviour, and memory cost.',
+  sections:[
+    {type:'prose',label:'Why Rate Limiting Matters',color:'blue',text:`Without rate limiting, a single misbehaving client can consume all available threads/connections, causing a denial-of-service for legitimate clients. Rate limiting also enables: <strong>tiered service plans</strong> (free tier: 100/min, paid: 10000/min), <strong>cost control</strong> for expensive operations (AI calls, PDF generation), and <strong>API security</strong> (throttle credential-stuffing attacks). Implementing rate limiting correctly in a distributed system (multiple pod replicas) requires a centralised store — Redis is the standard choice.`},
+    {type:'diagram',title:'Rate Limiting Algorithms Compared',diagram:`
+  1. FIXED WINDOW COUNTER
+  │ Window 1 (0-60s)  │ Window 2 (60-120s)  │
+  │ count: 100/100    │ count: 0/100         │
+  Problem: 100 at 59s + 100 at 61s = 200 in 2 seconds
+  (boundary exploit: double the rate at window edge)
+
+  2. SLIDING WINDOW LOG
+  Store timestamp of every request in a sorted set.
+  Count requests in [now - window_size, now].
+  Exact. Memory: O(requests in window) — costly for high traffic.
+  Redis: ZADD + ZCOUNT + ZREMRANGEBYSCORE
+
+  3. SLIDING WINDOW COUNTER (Hybrid)
+  current = current_window_count * (1 - elapsed/window_size)
+          + previous_window_count * (elapsed/window_size)
+  Approximation of sliding window. Memory: O(1). Accuracy: ~98%.
+  Best for most production use cases.
+
+  4. TOKEN BUCKET
+  ┌──────────────────────────────────────────────────────────┐
+  │  Bucket holds max N tokens.                              │
+  │  Tokens refilled at rate R per second.                  │
+  │  Each request consumes 1 token.                         │
+  │  If bucket empty → reject request.                      │
+  │  Allows BURSTS up to bucket capacity.                   │
+  └──────────────────────────────────────────────────────────┘
+  Good for: APIs that allow short bursts but sustained rate limit.
+
+  5. LEAKY BUCKET
+  ┌──────────────────────────────────────────────────────────┐
+  │  Requests enter queue (bucket).                          │
+  │  Queue processed at fixed rate (leak rate).             │
+  │  If queue full → reject.                                │
+  │  Smooths out bursts — output rate is always constant.   │
+  └──────────────────────────────────────────────────────────┘
+  Good for: downstream services that need smooth input rate.`},
+    {type:'insight',text:`<strong>The distributed gotcha:</strong> A naive Redis-based rate limiter using INCR + EXPIRE has a race condition. Two requests hit different pods simultaneously, both INCR before the EXPIRE is set. Use a Lua script (atomic execution in Redis): GET current count → if over limit reject → INCR → if first request EXPIRE. Redis executes Lua atomically, no race condition. Alternatively, use Redis' SETNX or the newer SET NX PX commands.`},
+    {type:'table',title:'Algorithm Selection Guide',headers:['Algorithm','Burst Handling','Memory Cost','Precision','Best For'],rows:[
+      ['Fixed Window','Allows 2x burst at boundary','O(1)','Low (boundary exploit)','Simple internal rate limits'],
+      ['Sliding Window Log','No burst','O(requests in window)','Perfect','Low-traffic, precision-critical APIs'],
+      ['Sliding Window Counter','Minor boundary imprecision','O(1)','High (~98%)','Most production APIs'],
+      ['Token Bucket','Allows configured burst','O(1)','High','APIs with legitimate burst patterns'],
+      ['Leaky Bucket','Absorbs bursts, smooth output','O(queue size)','High','Protecting downstream smooth-rate services'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Quote API:</strong> External brokers call the quote API. Rate limit: 100 requests/minute per API key (token bucket, burst of 150 to handle batch quote operations). Redis key: "rate:{api_key}:{minute}". Response headers: X-RateLimit-Remaining, X-RateLimit-Reset. Exceeding rate returns HTTP 429 with Retry-After header.`,ecomm:`<strong>Flash Sale Add-to-Cart:</strong> Flash sale launch: millions of users simultaneously add to cart. Sliding window counter per user_id at cart service. Limit: 10 add-to-cart operations per 10 seconds per user (prevents bots). At platform level: global rate limit on the product endpoint — leaky bucket at API gateway to smooth the spike to downstream inventory service.`},
+    {type:'qa',items:[
+      {q:'How do you implement rate limiting consistently across multiple service replicas?',a:'Each replica in isolation can\'t track global request count. Use Redis as a centralised rate limit store. All replicas INCR the same Redis key. Use a sliding window counter (Lua script for atomicity). This adds one Redis round-trip per request — typically 1-2ms, acceptable overhead. For extremely high-throughput services, use a local in-process counter with periodic sync to Redis (eventual consistency, small overshoot allowed).'},
+      {q:'What is the difference between rate limiting and throttling?',a:'Rate limiting: reject requests that exceed a threshold (HTTP 429). Throttling: slow down processing rather than reject — add artificial delays, queue requests, shed non-critical work. Rate limiting is client-facing (tell the client to slow down). Throttling is internal (manage own throughput to protect downstream). Both are load-shedding strategies — use rate limiting for external clients, throttling for internal service-to-service calls where backpressure is preferred.'},
+    ]}
+  ]
+},
+{
+  id:'ddd',
+  num:'06',
+  title:'Domain-Driven Design in Microservices',
+  prereq:'Service decomposition fundamentals',
+  tagline:'DDD provides the vocabulary and tools for decomposing complex domains into maintainable service boundaries. Bounded contexts, aggregates, and ubiquitous language prevent the most common microservice failure mode: wrong service boundaries.',
+  sections:[
+    {type:'prose',label:'Strategic Design',color:'blue',text:`DDD at the <strong>strategic</strong> level provides tools for dividing a large domain into manageable sub-domains. A <strong>Bounded Context</strong> is a linguistic boundary — within a bounded context, a term has a precise, unambiguous meaning. "Policy" means different things in the Insurance domain (a product the customer holds) vs. the Claims domain (the document authorising a claim) vs. the Billing domain (a payment schedule). These are three different bounded contexts with different models of "policy." Forcing one model across all contexts creates a <em>Big Ball of Mud</em>.`},
+    {type:'diagram',title:'DDD Building Blocks — Strategic & Tactical',diagram:`
+  STRATEGIC DESIGN (how to divide the domain):
+  ┌────────────────────────────────────────────────────────────┐
+  │                     INSURANCE DOMAIN                       │
+  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐ │
+  │  │   POLICY     │  │   CLAIMS     │  │    BILLING       │ │
+  │  │   CONTEXT    │  │   CONTEXT    │  │    CONTEXT       │ │
+  │  │              │  │              │  │                  │ │
+  │  │ Policy:      │  │ Claim:       │  │ Premium:         │ │
+  │  │ {coverage,   │  │ {amount,     │  │ {schedule,       │ │
+  │  │  holder,     │  │  status,     │  │  paymentMethod,  │ │
+  │  │  premium}    │  │  assessor}   │  │  dueDate}        │ │
+  │  └──────────────┘  └──────────────┘  └──────────────────┘ │
+  │         ▲ Context Map: how contexts communicate ▲          │
+  └────────────────────────────────────────────────────────────┘
+
+  TACTICAL DESIGN (within a bounded context):
+  ┌────────────────────────────────────────────────────────────┐
+  │  AGGREGATE (consistency boundary)                          │
+  │  ┌──────────────────────────────────────────────────────┐  │
+  │  │  Policy Aggregate Root                               │  │
+  │  │    │── PolicyId (Value Object)                       │  │
+  │  │    │── Holder (Entity)                               │  │
+  │  │    │── Coverage (Value Object — immutable)           │  │
+  │  │    └── PolicyHistory (collection of Events)          │  │
+  │  │                                                      │  │
+  │  │  Rules enforced at aggregate level:                  │  │
+  │  │  • Premium >= minimumPremium(coverage)               │  │
+  │  │  • Cannot activate without verified holder           │  │
+  │  └──────────────────────────────────────────────────────┘  │
+  └────────────────────────────────────────────────────────────┘
+
+  CONTEXT MAP PATTERNS:
+  • Shared Kernel: shared model (rare; used when contexts tightly coupled)
+  • Customer-Supplier: downstream depends on upstream (negotiate changes)
+  • Anti-Corruption Layer (ACL): translate between models at boundary
+  • Published Language: well-defined event schema (e.g., Avro schema registry)`},
+    {type:'insight',text:`<strong>The aggregate size trap:</strong> A common DDD mistake is making aggregates too large (an Order aggregate containing all line items, the customer, all addresses, all payment methods). Aggregates are transaction boundaries — everything inside is updated atomically, in a single transaction. A large aggregate = frequent transaction conflicts under concurrency. Keep aggregates small. An Order aggregate should contain only what must be consistent together: order ID, status, line items. Customer lives in a separate aggregate.`},
+    {type:'table',title:'Context Map Relationship Patterns',headers:['Pattern','Relationship','Complexity','When to Use'],rows:[
+      ['Shared Kernel','Two teams share a subset of the model','High — tight coupling','Core domain shared by few teams; rare'],
+      ['Customer/Supplier','Upstream/downstream; downstream requests changes','Medium','Clear ownership difference; API versioning applies'],
+      ['Conformist','Downstream conforms to upstream with no negotiation','Low','Integrating 3rd-party API or legacy system you can\'t change'],
+      ['Anti-Corruption Layer','Translation layer insulates downstream from upstream model','Medium-High','Integrating legacy/external systems with incompatible models'],
+      ['Open Host Service','Upstream provides well-documented protocol for all consumers','Low for consumers','Public APIs, platform services used by many teams'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Platform Bounded Contexts:</strong> The Policy Sales context and the Claims context both have a concept of "Customer." In Sales, Customer includes credit score and risk profile. In Claims, Customer includes claimant history and fraud score. These are genuinely different models. Anti-Corruption Layers translate between them — neither context is polluted by the other's model.`,ecomm:`<strong>Order Management:</strong> The Catalogue context (products, pricing, inventory) is separate from the Order context (what a customer bought) and the Fulfilment context (shipping, returns). "Product" in Catalogue has rich attributes (specs, images, SEO). "Product" in an Order is a snapshot (price at time of purchase, SKU) — it must never change after order placement. Different bounded contexts with different models, connected via domain events.`},
+    {type:'qa',items:[
+      {q:'How do you identify the right bounded context boundaries?',a:'Use these heuristics: (1) Follow team boundaries — Conway\'s Law says systems mirror communication structures. Teams that work independently should own independent bounded contexts. (2) Find linguistic boundaries — where the same word means different things, draw a context boundary. (3) Find rate of change boundaries — a catalogue changes hourly (pricing), order history changes rarely. Different rates of change = different services. (4) Find consistency requirements — what must be consistent in a single transaction defines an aggregate, not a service boundary.'},
+    ]}
+  ]
+},
+{
+  id:'caching',
+  num:'07',
+  title:'Advanced Caching Strategies',
+  prereq:'Redis Architecture, CAP Theorem, Consistency Models',
+  tagline:'Caching is the easiest way to scale a system. It is also the easiest way to introduce subtle correctness bugs. Choosing the right strategy per data type determines whether your cache helps or hurts.',
+  sections:[
+    {type:'prose',label:'Caching Patterns',color:'blue',text:`Beyond simple "cache the response," there are distinct patterns with different consistency properties and failure modes. <strong>Cache-Aside (Lazy Loading):</strong> application checks cache first, on miss fetches from DB and populates cache. <strong>Write-Through:</strong> application writes to cache and DB synchronously. <strong>Write-Behind (Write-Back):</strong> application writes to cache, cache asynchronously writes to DB. <strong>Read-Through:</strong> cache sits in front of DB, application only talks to cache. Each has different consistency, latency, and failure mode profiles.`},
+    {type:'diagram',title:'Caching Patterns — Flow & Trade-offs',diagram:`
+  CACHE-ASIDE (most common)
+  App ──► Cache hit? ──YES──► Return value
+              │NO
+              ▼
+          Fetch from DB ──► Store in Cache ──► Return value
+  
+  Pro: Cache only contains requested data (efficient)
+  Con: Cache miss = extra latency. Cold cache = thundering herd.
+
+  ─────────────────────────────────────────────────────────────
+
+  WRITE-THROUGH
+  App ──► Write to Cache ──► Write to DB ──► Confirm
+  
+  Pro: Cache always consistent with DB
+  Con: Write latency = cache + DB latency (additive)
+       Writes cached data that may never be read (wasteful)
+
+  ─────────────────────────────────────────────────────────────
+
+  WRITE-BEHIND
+  App ──► Write to Cache ──► Confirm (async: cache → DB)
+  
+  Pro: Write latency = cache only (fast)
+  Con: Risk of data loss if cache fails before DB write
+       Complexity in ordering writes
+
+  ─────────────────────────────────────────────────────────────
+
+  READ-THROUGH (transparent)
+  App ──► Cache ──miss──► Cache fetches from DB ──► Returns
+  
+  Pro: App code simplified (cache handles miss logic)
+  Con: Cache must know how to query DB (coupling)
+
+  ─────────────────────────────────────────────────────────────
+
+  CACHE STAMPEDE PREVENTION:
+  ┌──────────────────────────────────────────────────────────┐
+  │ Problem: 1000 concurrent requests, cache expires.        │
+  │ All 1000 query DB simultaneously.                        │
+  │                                                          │
+  │ Solutions:                                               │
+  │ 1. Mutex lock: first thread fetches, others wait        │
+  │ 2. Probabilistic early expiry (PER algorithm)            │
+  │ 3. Stale-while-revalidate: serve stale, refresh async   │
+  └──────────────────────────────────────────────────────────┘`},
+    {type:'gotcha',text:`<strong>Implementation Gotcha — Cache Invalidation:</strong> There are only two hard problems in CS: naming things and cache invalidation. Write-through keeps cache consistent but couples write latency. Cache-aside with TTL is eventually consistent — TTL must balance freshness vs load. For financial data (balances, positions): use write-through or explicit invalidation, never TTL-only. For reference data (product catalogue, exchange rates): TTL is fine — brief staleness is acceptable.`},
+    {type:'table',title:'What to Cache vs What Not to Cache',headers:['Data Type','Cache Strategy','TTL','Invalidation'],rows:[
+      ['User profile (read-heavy)','Cache-aside','1 hour','Explicit on update'],
+      ['Product catalogue','Write-through','1 hour','Explicit on price/stock change'],
+      ['Exchange rates','Cache-aside with background refresh','5 minutes','Time-based only'],
+      ['Insurance policy (financial)','Write-through or no cache','N/A','Always read from DB'],
+      ['Session data','Write-through','30 minutes','Explicit on logout'],
+      ['Computed aggregates (dashboards)','Pre-computation, cache result','15 minutes','Background job refreshes'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Rate Tables:</strong> Rate tables (used in premium calculation) are read millions of times per day but change rarely (weekly actuarial updates). Cache-aside with 1-hour TTL per rate table version. On update, explicit cache invalidation for the updated table. Version-keyed cache entries (rate-table:{version}) mean a new version deployment doesn't cause stampede — old and new versions coexist in cache briefly.`,ecomm:`<strong>Product Search Cache:</strong> Search results cached by query hash. Write-behind for cart adds (fast write UX, async persistence). Product inventory not cached — always read from DB/Redis sorted set (accuracy required). Daily deal featured products use pre-computed, write-through cache refreshed every 5 minutes — reads are always served from cache, writes go to both.`},
+    {type:'qa',items:[
+      {q:'How do you handle cache warming after a cold start or deployment?',a:'Cache warming strategies: (1) Eager warming — on startup, pre-populate cache with top-N frequently accessed items from DB. Slow startup, fast first requests. (2) Lazy warming — first N requests after deploy hit DB (cache miss), slowly warm. No startup cost, slow initial period. (3) Shadow traffic replay — replay recent production traffic against new instance to warm cache before receiving live traffic. (4) Cache persistence — Redis RDB/AOF means cache survives restarts (data survives, TTLs are preserved). For Kubernetes pods, use a readiness probe that checks cache warmth before accepting traffic.'},
+    ]}
+  ]
+},
+{
+  id:'backpressure',
+  num:'08',
+  title:'Backpressure & Reactive Systems',
+  prereq:'Circuit Breaker, Kafka, Thread Pool Exhaustion',
+  tagline:'Backpressure is the ability of a consumer to signal a producer to slow down. Without it, fast producers overwhelm slow consumers and cause cascading failures. Reactive systems build backpressure as a first-class concern.',
+  sections:[
+    {type:'prose',label:'The Backpressure Problem',color:'blue',text:`Without backpressure: Producer generates 10,000 events/second. Consumer processes 1,000 events/second. After 1 second, 9,000 events queue in memory. After 10 seconds, 90,000 events. OOM crash. With backpressure: Consumer signals it can handle 1,000/second. Producer slows to 1,000/second. No queue, no OOM. The challenge in microservices: HTTP has no native backpressure. Queue depth is backpressure in message queues. Reactive Streams (Project Reactor, RxJava) implement backpressure in asynchronous pipelines.`},
+    {type:'diagram',title:'Backpressure Mechanisms Across the Stack',diagram:`
+  HTTP/REST (no native backpressure):
+  Client ──► Server (thread pool 200)
+  If 201 concurrent requests → 201st gets rejected (503)
+  Backpressure via: rate limiting, load shedding, 503 responses
+  Client must implement retry with backoff.
+
+  MESSAGE QUEUE (native backpressure):
+  Producer ──► Kafka Topic ──► Consumer
+  Consumer controls its own poll rate (max.poll.records)
+  If consumer is slow → lag grows (visible metric)
+  Producer is never blocked (Kafka absorbs the buffer)
+  "Queue depth" IS the backpressure signal
+
+  REACTIVE STREAMS (programmatic backpressure):
+  ┌──────────────────────────────────────────────────────────┐
+  │  Flux.range(1, 1_000_000)                               │
+  │      .limitRate(100)          ← request only 100 at time│
+  │      .flatMap(n -> process(n))                          │
+  │      .subscribe()                                        │
+  │                                                          │
+  │  Subscriber signals demand upstream.                     │
+  │  Publisher only emits as much as demanded.              │
+  │  No unbounded queuing.                                   │
+  └──────────────────────────────────────────────────────────┘
+
+  TCP (built-in backpressure):
+  Receive buffer fills → TCP window shrinks → sender slows
+  This is why HTTP/1.1 automatically applies some backpressure
+  HTTP/2 adds explicit flow control per stream`},
+    {type:'insight',text:`<strong>The Reactive Streams insight:</strong> Spring WebFlux + Project Reactor gives you backpressure-aware HTTP. A WebFlux endpoint returns Flux<T> — the HTTP client and server negotiate how fast to stream data. For batch data export (stream 1M records), WebFlux + streaming response prevents OOM. Traditional Spring MVC collects all 1M records in memory before responding. This is the killer use case for reactive — not "faster" per se, but "doesn't blow up under load."  `},
+    {type:'table',title:'Backpressure Strategies',headers:['Strategy','Mechanism','Risk','Use When'],rows:[
+      ['Drop','Discard excess requests/messages','Data loss','Telemetry, metrics — losing some data acceptable'],
+      ['Buffer','Queue excess up to limit','OOM if unbounded','Short bursts; always bound the buffer'],
+      ['Block','Slow producer to consumer rate','Deadlock risk if not careful','Pipeline processing, stream transformation'],
+      ['Load Shedding','Return 503, reject non-critical work','Client sees errors','Protect core functionality; shed optional features first'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Batch Renewal Processing:</strong> Nightly job renews 5M policies. Processing rate: 10,000/minute (DB write limit). Producer (job scheduler) uses a bounded queue (ArrayBlockingQueue, capacity 50,000). When queue fills, producer blocks — natural backpressure. Job takes 8.5 hours at sustainable rate vs. crashing DB in 10 minutes at max speed.`,ecomm:`<strong>Order Event Processing:</strong> Black Friday: 500,000 order events/minute burst into Kafka. Consumer group (10 pods) processes at 50,000/minute. Kafka absorbs the burst — consumer lag grows to 9 minutes. This is healthy backpressure behaviour. Consumers automatically scale (HPA on consumer lag metric) to clear the backlog. No data loss; eventual processing of all events.`},
+    {type:'qa',items:[
+      {q:'What is the Reactive Manifesto and what are its four properties?',a:'The Reactive Manifesto (2014) defines reactive systems as: (1) Responsive — respond in a timely manner, (2) Resilient — stays responsive under failure, (3) Elastic — stays responsive under varying load (scale up/down), (4) Message-Driven — async message passing with backpressure. These aren\'t about reactive programming (Reactor, RxJava) specifically — they\'re architectural properties. A system using Kafka + circuit breakers can be reactive without using reactive programming libraries.'},
+      {q:'When should you use WebFlux vs Spring MVC?',a:'Use WebFlux when: streaming large responses, high concurrency with many concurrent connections (chat, SSE, WebSocket), calling many async I/O-bound services (non-blocking HTTP/DB clients). Use Spring MVC when: team is more familiar, JDBC (blocking DB), simple CRUD, simpler debugging. The non-blocking benefit only materialises if the ENTIRE chain is non-blocking — one blocking JDBC call in a WebFlux stack blocks the event loop thread and negates the benefit.'},
+    ]}
+  ]
+},
+{
+  id:'secureintech',
+  num:'09',
+  title:'Security Patterns: OAuth2, JWT & Zero Trust',
+  prereq:'REST API Design, Service Mesh basics',
+  tagline:'Security in microservices is more complex than in monoliths. Service-to-service authentication, token validation at scale, and zero-trust networking each require careful architectural decisions.',
+  sections:[
+    {type:'prose',label:'OAuth2 Flows',color:'blue',text:`OAuth2 is an authorisation framework. It defines how a client obtains an access token from an authorization server, then uses that token to access protected resources. The key flows: <strong>Authorization Code + PKCE</strong> — for user-facing applications (browser/mobile). Most secure flow for user auth. <strong>Client Credentials</strong> — for service-to-service (machine-to-machine) authentication. No user involved. Service has a client_id and client_secret; exchanges them for a token. <strong>JWT</strong> (JSON Web Token) is the most common token format — self-contained (claims embedded), stateless (no DB lookup per request), signed (RS256/ES256 — verify with public key).`},
+    {type:'diagram',title:'OAuth2 Authorization Code Flow + Service-to-Service',diagram:`
+  USER-FACING (Authorization Code + PKCE):
+  
+  Browser ──1─► Auth Server (Keycloak/Okta/Cognito)
+  Browser ◄─2── Redirect to app with auth code
+  App ──3─────► Auth Server: exchange code + verifier → tokens
+  App ◄─4────── {access_token (JWT), refresh_token}
+  App ──5─────► Resource Server (API Gateway)
+                    header: Authorization: Bearer <JWT>
+  API GW validates JWT signature with public key (no DB call)
+  
+  SERVICE-TO-SERVICE (Client Credentials):
+  
+  Service A ──1─► Auth Server: {client_id, client_secret, grant_type=client_credentials}
+  Service A ◄─2── {access_token (JWT), expires_in: 3600}
+  Service A ──3─► Service B: Authorization: Bearer <JWT>
+  Service B validates JWT locally (cached public key from JWKS endpoint)
+  
+  JWT STRUCTURE:
+  ┌──────────────────────────────────────────────────────────┐
+  │  Header:  {"alg": "RS256", "typ": "JWT"}                 │
+  │  Payload: {"sub": "user123", "roles": ["admin"],         │
+  │             "iss": "https://auth.example.com",           │
+  │             "exp": 1735689600, "iat": 1735686000}        │
+  │  Signature: RS256(base64(header)+"."+base64(payload),    │
+  │              private_key)                                │
+  │                                                          │
+  │  Validation: verify signature with public key +          │
+  │              check exp (not expired) +                   │
+  │              check iss (trusted issuer) +                │
+  │              check aud (intended audience)               │
+  └──────────────────────────────────────────────────────────┘`},
+    {type:'gotcha',text:`<strong>JWT Gotcha — You Can't Revoke a JWT Before Expiry:</strong> JWT is stateless — validation needs no DB call, but you can't revoke a specific token without a denylist (which reintroduces statefulness). Solutions: (1) Short-lived access tokens (5-15 minutes) + long-lived refresh tokens. On logout/compromise, revoke the refresh token. Access tokens expire naturally. (2) Token introspection endpoint for critical operations. (3) Redis-based token denylist checked on sensitive operations only. Don't make access tokens last 24 hours.`},
+    {type:'table',title:'OAuth2 Flow Selection Guide',headers:['Flow','Who Uses It','Tokens Involved','Security Level'],rows:[
+      ['Authorization Code + PKCE','Browser/mobile apps acting on behalf of user','Access + Refresh + ID token','Highest — user explicitly consents'],
+      ['Client Credentials','Service-to-service (no user)','Access token only','High — secret must be secured'],
+      ['Device Code','IoT, CLI tools, smart TV','Access + Refresh + ID token','High — works without browser'],
+      ['Implicit (DEPRECATED)','Old SPAs (avoid)','Access token only','Low — token in URL fragment'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Agent Portal:</strong> Agents log in via Authorization Code + PKCE flow (Keycloak IdP). JWT contains claims: {roles: ["agent", "quote:write"], branch: "Mumbai", exp: now+15min}. API gateway validates JWT signature and checks claims without contacting auth server — zero DB calls per request. Short 15-minute access token + 8-hour refresh token (agents work full day). Refresh tokens rotated on each use.`,ecomm:`<strong>Order Service → Payment Service:</strong> Client Credentials flow. Payment Service trusts tokens issued by internal auth server with audience "payment-service". Order Service fetches a token at startup, caches it, refreshes before expiry (exp - 5min buffer). Payment Service validates JWT using cached public key from JWKS endpoint (refreshed every 6 hours). No shared secret passed in-band.`},
+    {type:'qa',items:[
+      {q:'What is the difference between authentication and authorisation?',a:'Authentication: proving identity (who are you?). Authorisation: determining permissions (what can you do?). OAuth2 is an authorisation framework, not an authentication protocol. OpenID Connect (OIDC) is the authentication layer built on top of OAuth2 — it adds the ID token (JWT with user identity claims). In practice: OIDC handles authentication, OAuth2 scopes handle authorisation. Keycloak, Okta, and Cognito implement both.'},
+      {q:'How do you handle JWT validation in a multi-microservice system efficiently?',a:'Each service validates JWTs locally using the public key from the auth server\'s JWKS endpoint (JSON Web Key Set). Fetch JWKS once and cache with a 6-hour TTL. Local validation = zero network hop per request (< 1ms). The API Gateway validates the token first; internal services may trust the gateway and skip re-validation (defence-in-depth: still validate for critical services). Never pass user passwords or refresh tokens to downstream services — only short-lived access tokens.'},
+    ]}
+  ]
+},
+{
+  id:'grpc',
+  num:'10',
+  title:'gRPC vs REST — When Each Wins',
+  prereq:'REST API Design, Kafka basics',
+  tagline:'gRPC is not just "faster REST" — it is a fundamentally different communication paradigm with different semantics, tooling, and trade-offs. Choosing between them is an architectural decision, not a performance optimisation.',
+  sections:[
+    {type:'prose',label:'What gRPC Brings',color:'blue',text:`gRPC is built on HTTP/2 and uses Protocol Buffers for serialisation. Key advantages over REST/JSON: <strong>Strongly typed contracts</strong> (protobuf .proto file is the source of truth, code generated for all languages), <strong>Bidirectional streaming</strong> (client streaming, server streaming, full duplex — not possible with REST), <strong>Better performance</strong> (binary encoding vs JSON text, HTTP/2 multiplexing vs HTTP/1.1 per-request overhead), <strong>Native code generation</strong> (client stubs auto-generated for Java, Go, Python, etc.). Trade-offs: not human-readable (binary), harder to test with curl/Postman, limited browser support (needs grpc-web), schema evolution requires backward compatibility discipline.`},
+    {type:'diagram',title:'gRPC Communication Patterns',diagram:`
+  1. UNARY (like REST — one request, one response)
+  Client ──request──► Server
+  Client ◄─response── Server
+
+  2. SERVER STREAMING (server sends multiple responses)
+  Client ──request──► Server
+  Client ◄─chunk 1─── Server
+  Client ◄─chunk 2─── Server
+  Client ◄─chunk N─── Server (stream complete)
+  Use: large data export, real-time price feed, log streaming
+
+  3. CLIENT STREAMING (client sends stream, server responds once)
+  Client ──chunk 1──► Server
+  Client ──chunk 2──► Server
+  Client ──chunk N──► Server
+  Client ◄─response── Server
+  Use: file upload, batch data ingestion
+
+  4. BIDIRECTIONAL STREAMING (full duplex)
+  Client ◄──────────► Server
+  (simultaneous streams in both directions)
+  Use: chat, real-time collaboration, IoT sensor data
+
+  PROTOCOL BUFFER EXAMPLE:
+  ┌──────────────────────────────────────────────────────────┐
+  │  // policy.proto                                         │
+  │  service PolicyService {                                 │
+  │    rpc GetPolicy (PolicyRequest) returns (Policy);       │
+  │    rpc StreamPolicyEvents (PolicyId)                     │
+  │         returns (stream PolicyEvent);                    │
+  │  }                                                       │
+  │  message Policy {                                        │
+  │    string id = 1;                                        │
+  │    string holder = 2;                                    │
+  │    double premium = 3;                                   │
+  │    PolicyStatus status = 4;  // enum                     │
+  │  }                                                       │
+  └──────────────────────────────────────────────────────────┘`},
+    {type:'insight',text:`<strong>The schema evolution gotcha:</strong> Protocol Buffers have field numbers — removing or changing a field number breaks all clients. Safe evolution: add new fields with new numbers (old clients ignore unknown fields). Never reuse a field number. Never remove a required field. Use reserved keyword for deprecated fields. This discipline is enforced by tooling but requires developer awareness — it's stricter than JSON schema evolution.`},
+    {type:'table',title:'gRPC vs REST — Decision Matrix',headers:['Factor','gRPC','REST/JSON','Choose'],rows:[
+      ['Browser clients','Needs grpc-web + proxy','Native support','REST for browser-facing APIs'],
+      ['Internal microservices','Excellent — generated clients, strong types','Manual client, manual contract','gRPC for internal service mesh'],
+      ['Streaming','Native bidirectional streaming','Long-polling, SSE, WebSocket (workarounds)','gRPC for real-time streaming'],
+      ['Debugging','Binary — needs tools (grpcurl)','curl, Postman, browser-friendly','REST for debuggability'],
+      ['Schema enforcement','Strict (proto file)','Optional (OpenAPI)','gRPC for strict contracts'],
+      ['Latency','Lower (binary + HTTP/2 mux)','Higher (text + HTTP/1.1 overhead)','gRPC for latency-sensitive internal calls'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Core Services (Internal):</strong> Claims service calls Underwriting service 10M times/day. gRPC with protobuf: 60% smaller payload than JSON equivalent. HTTP/2 multiplexing: multiple calls on same connection (no connection per request overhead). Generated Java stub: type-safe calls, compile-time contract enforcement. Browser-facing customer portal still uses REST.`,ecomm:`<strong>Real-time Inventory Service:</strong> Inventory service uses gRPC server streaming. Clients subscribe to inventory updates: rpc StreamInventory(ProductId) returns (stream InventoryUpdate). Each inventory change is pushed to all subscribed clients in real-time. 10x lower overhead vs polling REST endpoint every second. Handles 100K concurrent streams with gRPC + Netty.`},
+    {type:'qa',items:[
+      {q:'How do you handle gRPC error codes vs HTTP status codes?',a:'gRPC has its own status codes: OK, CANCELLED, UNKNOWN, INVALID_ARGUMENT, NOT_FOUND, ALREADY_EXISTS, PERMISSION_DENIED, UNAUTHENTICATED, RESOURCE_EXHAUSTED (rate limited), FAILED_PRECONDITION, UNAVAILABLE, DEADLINE_EXCEEDED. Map these carefully when exposing gRPC internally and REST externally via an API gateway. DEADLINE_EXCEEDED should translate to 504 Gateway Timeout. RESOURCE_EXHAUSTED to 429. UNAUTHENTICATED to 401.'},
+    ]}
+  ]
+}
+];
+
+const toc = document.getElementById('toc');
+const main = document.getElementById('main');
+
+concepts.forEach((c,i)=>{
+  const btn = document.createElement('button');
+  btn.className = 'toc-btn'+(i===0?' active':'');
+  btn.textContent = c.num+' '+c.title;
+  btn.onclick = ()=>showConcept(i);
+  toc.appendChild(btn);
+
+  const div = document.createElement('div');
+  div.className = 'concept'+(i===0?' active':'');
+  div.id = 'concept-'+i;
+  div.innerHTML = buildConcept(c);
+  main.appendChild(div);
+});
+
+function buildConcept(c){
+  let h = `<div class="concept-header">
+    <div class="concept-number">Concept ${c.num} of 25</div>
+    <div class="prereq-tag">⚑ Prerequisite: ${c.prereq}</div>
+    <h2 class="concept-title">${c.title}</h2>
+    <p class="concept-tagline">${c.tagline}</p>
+  </div>`;
+  c.sections.forEach(s=>{
+    if(s.type==='prose'){
+      h+=`<div class="section"><div class="section-label ${s.color}">${s.label}</div><p class="prose">${s.text}</p></div>`;
+    } else if(s.type==='diagram'){
+      h+=`<div class="diagram-wrap"><div class="diagram-title">${s.title}</div><div class="diagram">${s.diagram}</div></div>`;
+    } else if(s.type==='insight'){
+      h+=`<div class="insight-box"><div class="label">💡 Expert Insight</div><p>${s.text}</p></div>`;
+    } else if(s.type==='gotcha'){
+      h+=`<div class="gotcha-box"><div class="label">⚠ Implementation Gotcha</div><p>${s.text}</p></div>`;
+    } else if(s.type==='table'){
+      let rows = s.rows.map(r=>'<tr>'+r.map(cell=>`<td>${cell}</td>`).join('')+'</tr>').join('');
+      let heads = s.headers.map(h=>`<th>${h}</th>`).join('');
+      h+=`<div class="section"><div class="section-label amber">${s.title}</div><div class="table-wrap"><table><thead><tr>${heads}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    } else if(s.type==='domain'){
+      h+=`<div class="section"><div class="section-label purple">Domain Examples</div><div class="domain-grid">
+        <div class="domain-card insurance"><div class="domain-tag">🏢 Insurance</div><div class="domain-scenario">${s.ins}</div></div>
+        <div class="domain-card ecomm"><div class="domain-tag">🛒 E-commerce</div><div class="domain-scenario">${s.ecomm}</div></div>
+      </div></div>`;
+    } else if(s.type==='qa'){
+      let items = s.items.map(item=>`
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><span>${item.q}</span><span class="qa-chevron">▼</span></div>
+          <div class="qa-a">${item.a}</div>
+        </div>`).join('');
+      h+=`<div class="section"><div class="section-label green">Advanced Follow-up Q&amp;A</div>${items}</div>`;
+    }
+  });
+  h+=`<div class="nav-footer">
+    <button class="nav-btn" onclick="navigate(-1)">← Previous</button>
+    <span style="font-size:11px;color:var(--text-muted);align-self:center">${c.num} / 25</span>
+    <button class="nav-btn" onclick="navigate(1)">Next →</button>
+  </div>`;
+  return h;
+}
+
+let current = 0;
+function showConcept(i){
+  document.querySelectorAll('.concept').forEach((el,idx)=>el.classList.toggle('active', idx===i));
+  document.querySelectorAll('.toc-btn').forEach((el,idx)=>el.classList.toggle('active', idx===i));
+  current = i;
+  document.getElementById('prog').style.width = ((i+1)/concepts.length*100)+'%';
+  window.scrollTo(0,0);
+}
+function navigate(dir){
+  const next = current + dir;
+  if(next >= 0 && next < concepts.length) showConcept(next);
+}
+function toggleQA(el){
+  const ans = el.nextElementSibling;
+  ans.classList.toggle('open');
+  el.querySelector('.qa-chevron').style.transform = ans.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+</script>
+</body>
+</html>

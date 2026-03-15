@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise Insurance Platform — Architecture Deep Dive</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --bg: #f8f9fa;
+  --surface: #ffffff;
+  --surface2: #f1f3f5;
+  --border: #dee2e6;
+  --text: #212529;
+  --text-muted: #6c757d;
+  --primary: #2563eb;
+  --primary-light: #eff6ff;
+  --accent: #0891b2;
+  --accent-light: #ecfeff;
+  --green: #16a34a;
+  --green-light: #f0fdf4;
+  --orange: #ea580c;
+  --orange-light: #fff7ed;
+  --red: #dc2626;
+  --red-light: #fef2f2;
+  --purple: #7c3aed;
+  --purple-light: #f5f3ff;
+  --yellow: #ca8a04;
+  --yellow-light: #fefce8;
+  --sidebar-w: 280px;
+  --code-bg: #1e1e2e;
+  --code-text: #cdd6f4;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+/* SIDEBAR */
+#sidebar {
+  position: fixed; top: 0; left: 0; width: var(--sidebar-w);
+  height: 100vh; overflow-y: auto; background: var(--surface);
+  border-right: 1px solid var(--border); padding: 20px 0; z-index: 100;
+}
+#sidebar h2 { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; padding: 0 20px 8px; margin-top: 16px; }
+#sidebar ul { list-style: none; }
+#sidebar ul li a {
+  display: block; padding: 5px 20px; font-size: 13.5px; color: var(--text);
+  text-decoration: none; border-left: 3px solid transparent; transition: all .15s;
+}
+#sidebar ul li a:hover, #sidebar ul li a.active {
+  background: var(--primary-light); border-left-color: var(--primary); color: var(--primary);
+}
+#sidebar .logo { padding: 0 20px 16px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+#sidebar .logo h1 { font-size: 15px; font-weight: 700; color: var(--primary); }
+#sidebar .logo p { font-size: 12px; color: var(--text-muted); }
+
+/* MAIN */
+main { margin-left: var(--sidebar-w); padding: 40px 48px; max-width: 1100px; }
+
+/* SECTIONS */
+section { margin-bottom: 64px; }
+h1.page-title { font-size: 32px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+.subtitle { color: var(--text-muted); font-size: 16px; margin-bottom: 40px; }
+h2.section-title {
+  font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 20px;
+  padding-bottom: 10px; border-bottom: 2px solid var(--border);
+}
+h3 { font-size: 16px; font-weight: 600; color: var(--text); margin: 24px 0 12px; }
+h4 { font-size: 14px; font-weight: 600; color: var(--text-muted); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: .06em; }
+p { margin-bottom: 12px; font-size: 15px; }
+
+/* CARDS */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.card.blue  { border-left: 4px solid var(--primary); background: var(--primary-light); }
+.card.green { border-left: 4px solid var(--green);   background: var(--green-light); }
+.card.orange{ border-left: 4px solid var(--orange);  background: var(--orange-light); }
+.card.red   { border-left: 4px solid var(--red);     background: var(--red-light); }
+.card.purple{ border-left: 4px solid var(--purple);  background: var(--purple-light); }
+.card.cyan  { border-left: 4px solid var(--accent);  background: var(--accent-light); }
+.card.yellow{ border-left: 4px solid var(--yellow);  background: var(--yellow-light); }
+
+/* BADGES */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; margin-right: 4px; }
+.badge.blue   { background: var(--primary-light); color: var(--primary); border: 1px solid #bfdbfe; }
+.badge.green  { background: var(--green-light);   color: var(--green);   border: 1px solid #bbf7d0; }
+.badge.orange { background: var(--orange-light);  color: var(--orange);  border: 1px solid #fed7aa; }
+.badge.red    { background: var(--red-light);     color: var(--red);     border: 1px solid #fecaca; }
+.badge.purple { background: var(--purple-light);  color: var(--purple);  border: 1px solid #ddd6fe; }
+.badge.gray   { background: var(--surface2);      color: var(--text-muted); border: 1px solid var(--border); }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; margin-bottom: 20px; border-radius: 8px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { background: var(--surface2); padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+td { padding: 10px 14px; border-top: 1px solid var(--border); vertical-align: top; }
+tr:hover td { background: var(--surface2); }
+td code, th code { font-size: 12px; }
+
+/* CODE */
+code { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 13px; background: var(--surface2); padding: 1px 5px; border-radius: 4px; color: var(--purple); }
+pre { background: var(--code-bg); color: var(--code-text); padding: 20px 24px; border-radius: 10px; overflow-x: auto; font-size: 13px; line-height: 1.7; margin: 12px 0 20px; }
+pre code { background: transparent; color: inherit; padding: 0; font-size: 13px; }
+.kw  { color: #cba6f7; } /* keyword */
+.str { color: #a6e3a1; } /* string */
+.num { color: #fab387; } /* number */
+.cmt { color: #585b70; } /* comment */
+.ann { color: #89dceb; } /* annotation */
+.cls { color: #89b4fa; } /* class */
+.mtd { color: #f38ba8; } /* method */
+
+/* DIAGRAMS */
+.diagram-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 16px 0 24px; overflow-x: auto; }
+.mermaid { max-width: 100%; }
+
+/* CALLOUT */
+.callout { border-radius: 8px; padding: 14px 18px; margin: 16px 0; font-size: 14px; border-left: 4px solid; }
+.callout.tip   { background: var(--green-light);  border-color: var(--green);  color: #15803d; }
+.callout.warn  { background: var(--yellow-light); border-color: var(--yellow); color: #92400e; }
+.callout.info  { background: var(--primary-light);border-color: var(--primary);color: #1d4ed8; }
+.callout.danger{ background: var(--red-light);    border-color: var(--red);    color: #991b1b; }
+.callout strong { font-weight: 700; }
+
+/* STEP LIST */
+.steps { counter-reset: step; list-style: none; }
+.steps li { counter-increment: step; padding: 10px 10px 10px 52px; position: relative; margin-bottom: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+.steps li::before { content: counter(step); position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: white; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+
+/* TWO COLUMN */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media(max-width:900px) { .two-col { grid-template-columns: 1fr; } }
+
+/* INTERVIEW Q&A */
+.qa { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+.qa summary { padding: 12px 16px; cursor: pointer; font-weight: 600; font-size: 14px; background: var(--surface2); list-style: none; display: flex; justify-content: space-between; }
+.qa summary::after { content: '▼'; font-size: 11px; color: var(--text-muted); }
+.qa[open] summary::after { content: '▲'; }
+.qa .answer { padding: 14px 16px; font-size: 14px; background: var(--surface); border-top: 1px solid var(--border); }
+.qa .answer p { margin-bottom: 8px; }
+
+/* PATTERN HEADER */
+.pattern-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.pattern-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+
+/* FLOW STEP */
+.flow-step { display: flex; gap: 16px; margin-bottom: 8px; align-items: flex-start; }
+.flow-step .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: white; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.flow-step .step-body { flex: 1; font-size: 14px; }
+.flow-step .step-body strong { color: var(--primary); }
+
+/* TECH STACK PILLS */
+.tech-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.tech-pill { padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; border: 1px solid var(--border); background: var(--surface); }
+
+/* ANCHOR OFFSET */
+.anchor-target { scroll-margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="logo">
+    <h1>EIP Architecture</h1>
+    <p>Enterprise Insurance Platform</p>
+  </div>
+  <h2>Overview</h2>
+  <ul>
+    <li><a href="#overview">Platform Overview</a></li>
+    <li><a href="#services">Service Map</a></li>
+    <li><a href="#techstack">Tech Stack</a></li>
+  </ul>
+  <h2>Architecture</h2>
+  <ul>
+    <li><a href="#arch-overview">System Architecture</a></li>
+    <li><a href="#kafka-arch">Kafka Architecture</a></li>
+    <li><a href="#security-arch">Security Architecture</a></li>
+    <li><a href="#db-arch">Database Architecture</a></li>
+  </ul>
+  <h2>Design Patterns</h2>
+  <ul>
+    <li><a href="#outbox">Transactional Outbox</a></li>
+    <li><a href="#eventsourcing">Event Sourcing + CQRS</a></li>
+    <li><a href="#saga">Saga Orchestration</a></li>
+    <li><a href="#idempotency">Idempotency</a></li>
+    <li><a href="#circuitbreaker">Circuit Breaker</a></li>
+    <li><a href="#optimistic">Optimistic Locking</a></li>
+    <li><a href="#fraud">Fraud Detection</a></li>
+    <li><a href="#foureyes">4-Eyes Approval</a></li>
+  </ul>
+  <h2>Business Flows</h2>
+  <ul>
+    <li><a href="#flow-registration">Customer Registration</a></li>
+    <li><a href="#flow-policy">Policy Issuance Saga</a></li>
+    <li><a href="#flow-claims">Claims Processing Saga</a></li>
+    <li><a href="#flow-payment">Payment Flow</a></li>
+    <li><a href="#flow-fraud">Fraud Scoring Flow</a></li>
+  </ul>
+  <h2>Infrastructure</h2>
+  <ul>
+    <li><a href="#docker">Docker / Local Dev</a></li>
+    <li><a href="#kubernetes">Kubernetes</a></li>
+    <li><a href="#monitoring">Monitoring</a></li>
+  </ul>
+  <h2>Interview Prep</h2>
+  <ul>
+    <li><a href="#interview-java">Java 21</a></li>
+    <li><a href="#interview-spring">Spring Boot</a></li>
+    <li><a href="#interview-microservices">Microservices</a></li>
+    <li><a href="#interview-kafka">Kafka</a></li>
+    <li><a href="#interview-systemdesign">System Design</a></li>
+    <li><a href="#interview-api">API Design</a></li>
+  </ul>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main>
+
+<!-- ═══════════════════════════════════════════════════
+     OVERVIEW
+════════════════════════════════════════════════════ -->
+<h1 class="page-title anchor-target" id="overview">Enterprise Insurance Platform</h1>
+<p class="subtitle">A production-grade microservices architecture on Spring Boot 3.2 · Java 21 · Kafka · PostgreSQL · Kubernetes</p>
+
+<div class="card-grid">
+  <div class="card blue">
+    <h4>Services</h4>
+    <div style="font-size:36px;font-weight:800;color:var(--primary)">14</div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">Independent deployable services</p>
+  </div>
+  <div class="card green">
+    <h4>Design Patterns</h4>
+    <div style="font-size:36px;font-weight:800;color:var(--green)">11</div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">Distinct patterns implemented</p>
+  </div>
+  <div class="card orange">
+    <h4>Kafka Topics</h4>
+    <div style="font-size:36px;font-weight:800;color:var(--orange)">~30</div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">Across all domains</p>
+  </div>
+  <div class="card purple">
+    <h4>Saga Steps</h4>
+    <div style="font-size:36px;font-weight:800;color:var(--purple)">14</div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">6 policy + 8 claims saga steps</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SERVICE MAP
+════════════════════════════════════════════════════ -->
+<section id="services" class="anchor-target">
+<h2 class="section-title">Service Map</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Service</th><th>Port</th><th>DB Port</th><th>Role</th><th>Key Patterns</th></tr></thead>
+<tbody>
+<tr><td><strong>customer-service</strong></td><td><code>8081</code></td><td><code>5432</code></td><td>Customer onboarding, KYC, OFAC screening, GDPR erasure</td><td><span class="badge blue">Outbox</span><span class="badge orange">Soft Delete</span></td></tr>
+<tr><td><strong>policy-service</strong></td><td><code>8082</code></td><td><code>5433</code></td><td>Policy lifecycle management</td><td><span class="badge purple">Event Sourcing</span><span class="badge blue">CQRS</span><span class="badge blue">Outbox</span></td></tr>
+<tr><td><strong>premium-calc-service</strong></td><td><code>8083</code></td><td><code>5445</code></td><td>Rating engine with Caffeine cache</td><td><span class="badge green">Cache 1hr TTL</span></td></tr>
+<tr><td><strong>claims-service</strong></td><td><code>8084</code></td><td><code>5434</code></td><td>Claims adjudication, 4-eyes approval</td><td><span class="badge red">4-Eyes &gt;$10K</span><span class="badge blue">Outbox</span></td></tr>
+<tr><td><strong>payment-service</strong></td><td><code>8085</code></td><td><code>5435</code></td><td>Stripe integration, retry logic</td><td><span class="badge orange">Idempotency</span><span class="badge blue">Outbox</span></td></tr>
+<tr><td><strong>billing-service</strong></td><td><code>8086</code></td><td><code>5436</code></td><td>Invoice generation, commission calc</td><td><span class="badge blue">Outbox</span></td></tr>
+<tr><td><strong>document-service</strong></td><td><code>8087</code></td><td><code>5438</code></td><td>PDF generation (iText), GCS storage</td><td><span class="badge gray">Consumer-only</span></td></tr>
+<tr><td><strong>fraud-detection-service</strong></td><td><code>8088</code></td><td><code>5437</code></td><td>Redis velocity counters, rule-based scoring</td><td><span class="badge red">Velocity Counters</span><span class="badge gray">&lt;200ms SLA</span></td></tr>
+<tr><td><strong>notification-service</strong></td><td><code>8089</code></td><td><code>5440</code></td><td>SendGrid (email) + Twilio (SMS)</td><td><span class="badge gray">Consumer-only</span></td></tr>
+<tr><td><strong>reference-data-service</strong></td><td><code>8090</code></td><td><code>5441</code></td><td>Rate tables, state rules</td><td><span class="badge green">Cache 4hr TTL</span></td></tr>
+<tr><td><strong>broker-service</strong></td><td><code>8091</code></td><td><code>5442</code></td><td>Broker/agent management, commissions</td><td><span class="badge gray">—</span></td></tr>
+<tr><td><strong>audit-service</strong></td><td><code>8092</code></td><td><code>5443</code></td><td>Append-only audit log</td><td><span class="badge gray">Consumes ALL topics</span></td></tr>
+<tr><td><strong>analytics-service</strong></td><td><code>8093</code></td><td><code>5444</code></td><td>OLAP read model, denormalized metrics</td><td><span class="badge gray">Read-only REST</span></td></tr>
+<tr><td><strong>workflow-orchestrator</strong></td><td><code>8094</code></td><td><code>5446</code></td><td>Saga orchestration for complex flows</td><td><span class="badge purple">Saga</span><span class="badge orange">Compensation</span></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     TECH STACK
+════════════════════════════════════════════════════ -->
+<section id="techstack" class="anchor-target">
+<h2 class="section-title">Tech Stack</h2>
+<div class="two-col">
+  <div class="card">
+    <h3>Core Framework</h3>
+    <div class="tech-list">
+      <span class="tech-pill">Java 21</span>
+      <span class="tech-pill">Spring Boot 3.2.3</span>
+      <span class="tech-pill">Spring Cloud 2023.0.0</span>
+      <span class="tech-pill">Spring Security 6</span>
+      <span class="tech-pill">Spring Data JPA</span>
+      <span class="tech-pill">Spring Kafka</span>
+      <span class="tech-pill">Maven Multi-module</span>
+    </div>
+    <h3>Persistence</h3>
+    <div class="tech-list">
+      <span class="tech-pill">PostgreSQL 15</span>
+      <span class="tech-pill">Flyway 10.4</span>
+      <span class="tech-pill">HikariCP</span>
+      <span class="tech-pill">Redis (velocity counters)</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Messaging & Observability</h3>
+    <div class="tech-list">
+      <span class="tech-pill">Apache Kafka 3.6 (KRaft)</span>
+      <span class="tech-pill">Confluent Schema Registry</span>
+      <span class="tech-pill">Avro Serialization</span>
+      <span class="tech-pill">Prometheus</span>
+      <span class="tech-pill">Grafana</span>
+      <span class="tech-pill">Spring Actuator</span>
+    </div>
+    <h3>Resilience &amp; Security</h3>
+    <div class="tech-list">
+      <span class="tech-pill">Resilience4j 2.2</span>
+      <span class="tech-pill">Keycloak (OIDC/RS256)</span>
+      <span class="tech-pill">BCrypt(12) for PII</span>
+      <span class="tech-pill">Caffeine Cache</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>External Integrations</h3>
+    <div class="tech-list">
+      <span class="tech-pill">Stripe 24.1 (payments)</span>
+      <span class="tech-pill">SendGrid 4.10 (email)</span>
+      <span class="tech-pill">Twilio 9.14 (SMS)</span>
+      <span class="tech-pill">iText 8.0.3 (PDF)</span>
+      <span class="tech-pill">Google Cloud Storage</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Infrastructure</h3>
+    <div class="tech-list">
+      <span class="tech-pill">Docker + Docker Compose</span>
+      <span class="tech-pill">Kubernetes (GKE Autopilot)</span>
+      <span class="tech-pill">Kustomize (base/dev/staging/prod)</span>
+      <span class="tech-pill">Terraform (GCP)</span>
+      <span class="tech-pill">TestContainers 1.19</span>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     SYSTEM ARCHITECTURE DIAGRAM
+════════════════════════════════════════════════════ -->
+<section id="arch-overview" class="anchor-target">
+<h2 class="section-title">System Architecture</h2>
+<p>The platform uses an <strong>event-driven microservices architecture</strong>. Services communicate asynchronously via Kafka. The Workflow Orchestrator implements the Saga pattern to coordinate multi-step business processes spanning multiple services.</p>
+
+<div class="diagram-wrap">
+<div class="mermaid">
+graph TB
+    subgraph Client["Client Layer"]
+        APP[Mobile/Web App]
+        AGENT[Broker Portal]
+    end
+
+    subgraph Gateway["API Gateway / Auth"]
+        KC[Keycloak :8080\nOIDC RS256]
+    end
+
+    subgraph Tier0["Tier-0 — Core Domain Services"]
+        CS[customer-service\n:8081]
+        PS[policy-service\n:8082]
+        CLS[claims-service\n:8084]
+        PAY[payment-service\n:8085]
+    end
+
+    subgraph Tier1["Tier-1 — Supporting Services"]
+        PCS[premium-calc-service\n:8083]
+        FDS[fraud-detection\n:8088]
+        RDS[reference-data\n:8090]
+        BS[broker-service\n:8091]
+        BLS[billing-service\n:8086]
+        WO[workflow-orchestrator\n:8094]
+    end
+
+    subgraph Tier2["Tier-2 — Downstream / Read"]
+        DS[document-service\n:8087]
+        NS[notification-service\n:8089]
+        AS[audit-service\n:8092]
+        ANS[analytics-service\n:8093]
+    end
+
+    subgraph Infra["Infrastructure"]
+        KAFKA[Kafka 3-node KRaft\n29092/29093/29094]
+        REDIS[Redis :6379\nVelocity Counters]
+        PG[(14x PostgreSQL\nper-service DB)]
+    end
+
+    APP --> KC
+    AGENT --> KC
+    KC --> CS & PS & CLS & PAY
+    KC --> PCS & FDS & RDS & BS & BLS & WO
+
+    CS & PS & CLS & PAY & BLS & WO --> KAFKA
+    KAFKA --> FDS & DS & NS & AS & ANS & WO
+    FDS --> REDIS
+    Tier0 & Tier1 & Tier2 --> PG
+
+    style Tier0 fill:#eff6ff,stroke:#2563eb
+    style Tier1 fill:#f0fdf4,stroke:#16a34a
+    style Tier2 fill:#fdf4ff,stroke:#7c3aed
+    style Infra fill:#fff7ed,stroke:#ea580c
+</div>
+</div>
+
+<div class="callout info">
+<strong>Tier classification:</strong> Tier-0 services (customer, policy, claims, payment) are core to the business and run with min 2 replicas + PDB. Tier-2 services are purely downstream and can tolerate brief unavailability.
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KAFKA ARCHITECTURE
+════════════════════════════════════════════════════ -->
+<section id="kafka-arch" class="anchor-target">
+<h2 class="section-title">Kafka Architecture</h2>
+
+<div class="two-col">
+<div class="card">
+  <h3>Cluster Setup</h3>
+  <ul style="font-size:14px;padding-left:18px;">
+    <li><strong>3-node KRaft cluster</strong> (no ZooKeeper)</li>
+    <li>Replication Factor: <code>3</code> on all topics</li>
+    <li><code>min.insync.replicas=2</code></li>
+    <li>External ports: <code>29092, 29093, 29094</code></li>
+    <li>Log retention: <code>168 hours</code></li>
+    <li>Max message size: <code>10MB</code></li>
+    <li>Topic auto-creation: <strong>DISABLED</strong></li>
+  </ul>
+</div>
+<div class="card">
+  <h3>Producer Settings (every service)</h3>
+  <ul style="font-size:14px;padding-left:18px;">
+    <li><code>acks=all</code> — wait for all replicas</li>
+    <li><code>enable.idempotence=true</code> — exactly-once producer</li>
+    <li><code>retries=3</code> — automatic retry on transient failures</li>
+    <li>Consumer: <code>enable-auto-commit=false</code></li>
+    <li>Consumer: <code>AckMode.RECORD</code> — manual ack per message</li>
+    <li>Listener concurrency: <code>3 threads</code></li>
+  </ul>
+</div>
+</div>
+
+<h3>Topic Map</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Topic</th><th>Partitions</th><th>Produced By</th><th>Consumed By</th></tr></thead>
+<tbody>
+<tr><td><code>customer.customers.registered</code></td><td>6</td><td>customer-service</td><td>audit, analytics, notification, workflow</td></tr>
+<tr><td><code>customer.customers.kyc-completed</code></td><td>6</td><td>customer-service</td><td>policy-service, audit</td></tr>
+<tr><td><code>policy.policies.issued</code></td><td>24</td><td>policy-service</td><td>billing, document, audit, analytics, notification</td></tr>
+<tr><td><code>payment.payments.premium-received</code></td><td>24</td><td>payment-service</td><td>billing, policy, audit, analytics</td></tr>
+<tr><td><code>payment.payments.failed</code></td><td>24</td><td>payment-service</td><td>notification, audit, workflow</td></tr>
+<tr><td><code>claims.claims.filed</code></td><td>24</td><td>claims-service</td><td>fraud-detection, audit, analytics, workflow</td></tr>
+<tr><td><code>claims.claims.approved</code></td><td>24</td><td>claims-service</td><td>payment, notification, audit, analytics</td></tr>
+<tr><td><code>fraud.scores.returned</code></td><td>6</td><td>fraud-detection-service</td><td>claims-service, audit</td></tr>
+<tr><td><code>premiumcalc.commands.calculate</code></td><td>6</td><td>workflow-orchestrator</td><td>premium-calc-service</td></tr>
+<tr><td><code>billing.commands.create-schedule</code></td><td>6</td><td>workflow-orchestrator</td><td>billing-service</td></tr>
+<tr><td><code>document.commands.generate</code></td><td>6</td><td>workflow-orchestrator</td><td>document-service</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Topic Naming Convention</h3>
+<div class="card cyan">
+<code>{domain}.{entity-plural}.{event-verb}</code>
+<p style="font-size:14px;margin:8px 0 0;">Examples: <code>policy.policies.issued</code> · <code>payment.payments.failed</code> · <code>fraud.scores.returned</code></p>
+<p style="font-size:14px;margin:4px 0 0;">Command topics: <code>premiumcalc.commands.calculate</code> · <code>payment.commands.collect-premium</code></p>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     SECURITY ARCHITECTURE
+════════════════════════════════════════════════════ -->
+<section id="security-arch" class="anchor-target">
+<h2 class="section-title">Security Architecture</h2>
+
+<div class="diagram-wrap">
+<div class="mermaid">
+sequenceDiagram
+    participant C as Client
+    participant KC as Keycloak :8080
+    participant SVC as Any Microservice
+    participant DB as PostgreSQL
+
+    C->>KC: POST /realms/insurance/protocol/openid-connect/token
+    KC-->>C: JWT (RS256, signed with realm private key)
+    C->>SVC: HTTP Request + Authorization: Bearer {jwt}
+    SVC->>SVC: Validate JWT signature via JWKS endpoint
+    Note over SVC: Spring Security validates exp, iss, aud
+    SVC->>SVC: @PreAuthorize("hasRole('ADMIN')") check
+    SVC->>DB: Business logic
+    DB-->>SVC: Result
+    SVC-->>C: Response
+</div>
+</div>
+
+<div class="two-col">
+<div>
+<h3>SecurityConfig Pattern (every service)</h3>
+<pre><code><span class="ann">@Configuration</span>
+<span class="ann">@EnableWebSecurity</span>
+<span class="ann">@EnableMethodSecurity</span>  <span class="cmt">// enables @PreAuthorize</span>
+<span class="kw">public class</span> <span class="cls">SecurityConfig</span> {
+  <span class="ann">@Bean</span>
+  <span class="kw">public</span> SecurityFilterChain <span class="mtd">filterChain</span>(HttpSecurity http) {
+    http
+      .csrf(csrf -> csrf.disable())          <span class="cmt">// stateless API</span>
+      .sessionManagement(sm -> sm
+        .sessionCreationPolicy(<span class="cls">STATELESS</span>))
+      .authorizeHttpRequests(auth -> auth
+        .requestMatchers(<span class="str">"/actuator/health/**"</span>,
+                         <span class="str">"/actuator/prometheus"</span>).permitAll()
+        .anyRequest().authenticated())
+      .oauth2ResourceServer(oauth2 ->
+        oauth2.jwt(jwt -> {}));             <span class="cmt">// validates RS256 JWT</span>
+    <span class="kw">return</span> http.build();
+  }
+}</code></pre>
+</div>
+<div>
+<h3>Method-Level Authorization</h3>
+<pre><code><span class="cmt">// customer-service</span>
+<span class="ann">@GetMapping</span>(<span class="str">"/{customerId}"</span>)
+<span class="ann">@PreAuthorize</span>(<span class="str">"hasAnyRole('CUSTOMER','ADMIN','CLAIMS_ADJUSTER')"</span>)
+<span class="kw">public</span> CustomerResponse <span class="mtd">getCustomer</span>(String id) { ... }
+
+<span class="ann">@DeleteMapping</span>(<span class="str">"/{customerId}/gdpr"</span>)
+<span class="ann">@PreAuthorize</span>(<span class="str">"hasAnyRole('CUSTOMER','ADMIN','COMPLIANCE')"</span>)
+<span class="kw">public void</span> <span class="mtd">gdprErasure</span>(String id) { ... }
+
+<span class="ann">@PostMapping</span>(<span class="str">"/{customerId}/suspend"</span>)
+<span class="ann">@PreAuthorize</span>(<span class="str">"hasRole('ADMIN')"</span>)
+<span class="kw">public void</span> <span class="mtd">suspend</span>(String id) { ... }
+
+<span class="cmt">// claims-service — 4-eyes enforced at API level</span>
+<span class="ann">@PostMapping</span>(<span class="str">"/{claimId}/approve"</span>)
+<span class="ann">@PreAuthorize</span>(<span class="str">"hasAnyRole('ADJUSTER','SUPERVISOR')"</span>)
+<span class="kw">public void</span> <span class="mtd">approveClaim</span>(String id) { ... }</code></pre>
+
+<h3>PII Protection</h3>
+<pre><code><span class="cmt">// SSN BCrypt-hashed before persistence</span>
+<span class="ann">@Bean</span>
+<span class="kw">public</span> BCryptPasswordEncoder <span class="mtd">passwordEncoder</span>() {
+  <span class="kw">return new</span> <span class="cls">BCryptPasswordEncoder</span>(<span class="num">12</span>); <span class="cmt">// strength 12</span>
+}
+
+<span class="cmt">// In CustomerService.registerCustomer():</span>
+customer.setSsnHash(passwordEncoder.encode(request.getSsn()));</code></pre>
+</div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     DATABASE ARCHITECTURE
+════════════════════════════════════════════════════ -->
+<section id="db-arch" class="anchor-target">
+<h2 class="section-title">Database Architecture</h2>
+<div class="callout info">
+<strong>Database per service:</strong> Each of the 14 services has its own isolated PostgreSQL database. No cross-service joins — integration happens only via Kafka events.
+</div>
+
+<div class="two-col">
+<div class="card">
+  <h3>Flyway Migration Strategy</h3>
+  <ul style="font-size:14px;padding-left:18px;">
+    <li><code>ddl-auto: validate</code> — JPA never touches DDL</li>
+    <li>Schema owned <em>exclusively</em> by Flyway</li>
+    <li>All services: <code>V1__initial_schema.sql</code></li>
+    <li>premium-calc &amp; reference-data also have <code>V2__seed_*.sql</code></li>
+    <li><code>baseline-on-migrate: true</code> for existing DBs</li>
+  </ul>
+</div>
+<div class="card">
+  <h3>DB Credential Pattern</h3>
+  <ul style="font-size:14px;padding-left:18px;">
+    <li>Env vars: <code>DB_USERNAME</code> / <code>DB_PASSWORD</code></li>
+    <li>Default: <code>eip_user</code> / <code>eip_pass</code></li>
+    <li>DB name: <code>{service-name}_db</code></li>
+    <li>In Kubernetes: injected from Secrets</li>
+    <li>HikariCP: min-idle=5, max-pool=20</li>
+  </ul>
+</div>
+</div>
+
+<h3>Outbox Table (present in 5 services)</h3>
+<pre><code><span class="cmt">-- outbox_events table (customer, policy, payment, billing, claims)</span>
+CREATE TABLE outbox_events (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    aggregate_type  VARCHAR(50)  NOT NULL,
+    aggregate_id    VARCHAR(50)  NOT NULL,
+    event_type      VARCHAR(100) NOT NULL,
+    payload         TEXT         NOT NULL,
+    status          VARCHAR(20)  NOT NULL DEFAULT 'PENDING'
+                    CHECK (status IN ('PENDING','PROCESSED','FAILED')),
+    created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    processed_at    TIMESTAMPTZ
+);
+CREATE INDEX idx_outbox_status_created ON outbox_events(status, created_at)
+    WHERE status = 'PENDING';  <span class="cmt">-- partial index for polling efficiency</span></code></pre>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     PATTERN: TRANSACTIONAL OUTBOX
+════════════════════════════════════════════════════ -->
+<section id="outbox" class="anchor-target">
+<h2 class="section-title">Transactional Outbox Pattern</h2>
+
+<div class="pattern-header">
+  <div class="pattern-icon" style="background:var(--primary-light)">📤</div>
+  <div>
+    <strong>Services:</strong> customer, policy, payment, billing, claims<br>
+    <span style="font-size:13px;color:var(--text-muted)">Solves the dual-write problem: DB write + Kafka publish atomically</span>
+  </div>
+</div>
+
+<div class="callout warn">
+<strong>Problem:</strong> If you write to DB and then publish to Kafka, the service can crash between the two operations. The event is lost. This is the dual-write problem.
+</div>
+<div class="callout tip">
+<strong>Solution:</strong> Write to both the business table AND the outbox table in the <em>same transaction</em>. A background poller reads PENDING outbox events and publishes them to Kafka.
+</div>
+
+<div class="diagram-wrap">
+<div class="mermaid">
+sequenceDiagram
+    participant SVC as Service Layer
+    participant DB as PostgreSQL
+    participant PUB as OutboxPublisher\n(@Scheduled 100ms)
+    participant KAFKA as Kafka
+
+    SVC->>DB: BEGIN TRANSACTION
+    SVC->>DB: INSERT INTO customers (...)
+    SVC->>DB: INSERT INTO outbox_events (status=PENDING, payload=...)
+    SVC->>DB: COMMIT
+    Note over DB: Both writes atomic — no dual-write risk
+
+    loop Every 100ms
+        PUB->>DB: SELECT * FROM outbox_events WHERE status='PENDING'
+        DB-->>PUB: [pending events]
+        PUB->>KAFKA: publish(topic, payload)
+        PUB->>DB: UPDATE outbox_events SET status='PROCESSED'
+    end
+</div>
+</div>
+
+<div class="two-col">
+<div>
+<h3>OutboxEvent Entity</h3>
+<pre><code><span class="ann">@Entity</span>
+<span class="ann">@Table</span>(name = <span class="str">"outbox_events"</span>)
+<span class="kw">public class</span> <span class="cls">OutboxEvent</span> {
+  <span class="ann">@Id</span> UUID id;
+  String aggregateType;
+  String aggregateId;
+  String eventType;
+  String payload;           <span class="cmt">// JSON</span>
+  <span class="cls">OutboxStatus</span> status;     <span class="cmt">// PENDING/PROCESSED/FAILED</span>
+  Instant createdAt;
+  Instant processedAt;
+}</code></pre>
+</div>
+<div>
+<h3>OutboxPublisher</h3>
+<pre><code><span class="ann">@Component</span>
+<span class="kw">public class</span> <span class="cls">OutboxPublisher</span> {
+
+  <span class="ann">@Scheduled</span>(fixedDelay = <span class="num">100</span>) <span class="cmt">// 100ms poll</span>
+  <span class="kw">public void</span> <span class="mtd">publishPendingEvents</span>() {
+    outboxRepo.findByStatus(<span class="cls">PENDING</span>)
+      .forEach(event -> {
+        <span class="kw">try</span> {
+          kafkaTemplate.send(event.getEventType(),
+                             event.getPayload());
+          event.setStatus(<span class="cls">PROCESSED</span>);
+          event.setProcessedAt(Instant.now());
+        } <span class="kw">catch</span> (Exception e) {
+          event.setStatus(<span class="cls">FAILED</span>);
+        }
+        outboxRepo.save(event);
+      });
+  }
+}</code></pre>
+</div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     PATTERN: EVENT SOURCING + CQRS
+════════════════════════════════════════════════════ -->
+<section id="eventsourcing" class="anchor-target">
+<h2 class="section-title">Event Sourcing + CQRS</h2>
+
+<div class="pattern-header">
+  <div class="pattern-icon" style="background:var(--purple-light)">🗂️</div>
+  <div>
+    <strong>Service:</strong> policy-service only<br>
+    <span style="font-size:13px;color:var(--text-muted)">Full audit trail of all policy state changes + separate optimized read model</span>
+  </div>
+</div>
+
+<div class="diagram-wrap">
+<div class="mermaid">
+graph LR
+    subgraph Write Side - Command
+        CMD[Policy Command\ne.g. IssuePolicy]
+        ES[(policy_events\nappend-only store)]
+        CMD --> ES
+    end
+
+    subgraph Read Side - Query
+        PROJ[(policy_projections\ndenormalized read model)]
+        API[Query API\nGET /policies/]
+        PROJ --> API
+    end
+
+    ES -->|"Event replay\n(projection rebuilder)"| PROJ
+    ES -->|"Outbox → Kafka"| KAFKA[Kafka\npolicy.policies.issued]
+
+    style ES fill:#f5f3ff,stroke:#7c3aed
+    style PROJ fill:#eff6ff,stroke:#2563eb
+</div>
+</div>
+
+<div class="two-col">
+<div>
+<h3>Event Store (append-only)</h3>
+<pre><code><span class="cmt">-- policy_events: NEVER update or delete</span>
+CREATE TABLE policy_events (
+    id             UUID PRIMARY KEY,
+    policy_id      VARCHAR(50) NOT NULL,
+    event_type     VARCHAR(100) NOT NULL,
+    event_version  BIGINT NOT NULL,
+    payload        TEXT NOT NULL,
+    correlation_id VARCHAR(100),
+    causation_id   VARCHAR(100),
+    occurred_at    TIMESTAMPTZ NOT NULL,
+    recorded_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (policy_id, event_version)  <span class="cmt">-- optimistic concurrency</span>
+);</code></pre>
+</div>
+<div>
+<h3>PolicyEventStore.appendEvent()</h3>
+<pre><code><span class="cmt">// Must be called within an existing transaction</span>
+<span class="ann">@Transactional</span>(propagation = <span class="cls">MANDATORY</span>)
+<span class="kw">public void</span> <span class="mtd">appendEvent</span>(String policyId,
+    String eventType, Object payload, String correlationId) {
+
+  <span class="kw">long</span> nextVersion = policyEventRepo
+    .findMaxVersionByPolicyId(policyId)
+    .orElse(-1L) + 1;
+
+  PolicyEvent event = <span class="kw">new</span> <span class="cls">PolicyEvent</span>();
+  event.setPolicyId(policyId);
+  event.setEventType(eventType);
+  event.setEventVersion(nextVersion);
+  event.setPayload(toJson(payload));
+  policyEventRepo.save(event);
+
+  <span class="cmt">// Also save to outbox atomically</span>
+  outboxRepo.save(toOutboxEvent(event));
+}</code></pre>
+</div>
+</div>
+
+<h3>CQRS Read Model (Projection)</h3>
+<pre><code><span class="cmt">-- policy_projections: rebuilt from events, optimized for queries</span>
+CREATE TABLE policy_projections (
+    id               UUID PRIMARY KEY,
+    policy_id        VARCHAR(50) UNIQUE NOT NULL,
+    customer_id      VARCHAR(50) NOT NULL,
+    broker_id        VARCHAR(50),
+    line_of_business VARCHAR(30) NOT NULL,   <span class="cmt">-- AUTO, HOME, LIFE, COMMERCIAL_PROPERTY...</span>
+    status           VARCHAR(30) NOT NULL,   <span class="cmt">-- QUOTED, BOUND, ISSUED, ENDORSED, CANCELLED...</span>
+    premium_amount   DECIMAL(14,2),
+    coverage_limit   DECIMAL(12,2),
+    deductible       DECIMAL(10,2),
+    effective_date   DATE,
+    expiration_date  DATE,
+    version          BIGINT NOT NULL DEFAULT 0   <span class="cmt">-- optimistic locking</span>
+);</code></pre>
+
+<div class="callout tip">
+<strong>Interview Insight:</strong> Event Sourcing gives you a complete audit trail — you can replay events to rebuild state at any point in time. The UNIQUE constraint on <code>(policy_id, event_version)</code> acts as optimistic concurrency control at the event store level.
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     PATTERN: SAGA ORCHESTRATION
+════════════════════════════════════════════════════ -->
+<section id="saga" class="anchor-target">
+<h2 class="section-title">Saga Orchestration</h2>
+
+<div class="pattern-header">
+  <div class="pattern-icon" style="background:var(--orange-light)">🎭</div>
+  <div>
+    <strong>Service:</strong> workflow-orchestrator (:8094)<br>
+    <span style="font-size:13px;color:var(--text-muted)">Manages distributed transactions with compensating transactions on failure</span>
+  </div>
+</div>
+
+<h3>Saga 1: Policy Issuance (6 steps)</h3>
+<div class="diagram-wrap">
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> QUOTE_CREATED : startPolicyIssuanceSaga()
+    QUOTE_CREATED --> PREMIUM_CALCULATED : → premiumcalc.commands.calculate
+    PREMIUM_CALCULATED --> PAYMENT_COLLECTED : → payment.commands.collect-premium
+    PAYMENT_COLLECTED --> POLICY_ISSUED : → policy.commands.issue
+    POLICY_ISSUED --> BILLING_CREATED : → billing.commands.create-schedule
+    BILLING_CREATED --> DOCUMENTS_GENERATED : → document.commands.generate
+    DOCUMENTS_GENERATED --> [*] : COMPLETED ✓
+
+    PREMIUM_CALCULATED --> COMPENSATING : FAILURE
+    PAYMENT_COLLECTED --> COMPENSATING : FAILURE
+    POLICY_ISSUED --> COMPENSATING : FAILURE
+    COMPENSATING --> [*] : COMPENSATED\n(reverse order)
+</div>
+</div>
+
+<h3>Saga 2: Claim Processing (8 steps)</h3>
+<div class="diagram-wrap">
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> FNOL_RECEIVED : fileClaim() → Kafka
+    FNOL_RECEIVED --> FRAUD_SCORED : fraud-detection scores
+    FRAUD_SCORED --> COVERAGE_VERIFIED : claims verifies coverage
+    COVERAGE_VERIFIED --> ADJUSTER_ASSIGNED : claim assigned
+    ADJUSTER_ASSIGNED --> RESERVE_SET : reserve amount set
+    RESERVE_SET --> APPROVED : approveClaim() [4-eyes if >$10K]
+    APPROVED --> PAYMENT_INITIATED : payment-service creates payout
+    PAYMENT_INITIATED --> CLOSED : payment completed
+    CLOSED --> [*] : COMPLETED ✓
+</div>
+</div>
+
+<div class="two-col">
+<div>
+<h3>SagaInstance Entity</h3>
+<pre><code><span class="ann">@Entity</span>
+<span class="kw">public class</span> <span class="cls">SagaInstance</span> {
+  UUID id;
+  SagaType sagaType;         <span class="cmt">// POLICY_ISSUANCE, CLAIM_PROCESSING</span>
+  SagaStatus sagaStatus;     <span class="cmt">// STARTED, IN_PROGRESS, COMPLETED,</span>
+                             <span class="cmt">// COMPENSATING, COMPENSATED</span>
+  String correlationId;      <span class="cmt">// policyId or claimId</span>
+  String currentStep;
+  String failureReason;
+  String payload;
+
+  <span class="ann">@OneToMany</span>(cascade = ALL, orphanRemoval = <span class="kw">true</span>)
+  List&lt;SagaStep&gt; steps;
+
+  <span class="cmt">// UNIQUE(correlation_id, saga_type) → idempotent start</span>
+}</code></pre>
+</div>
+<div>
+<h3>Compensation Logic</h3>
+<pre><code><span class="kw">private void</span> <span class="mtd">failSaga</span>(SagaInstance saga) {
+  saga.setSagaStatus(<span class="cls">COMPENSATING</span>);
+
+  <span class="cmt">// Emit compensating commands in REVERSE order</span>
+  saga.getSteps().stream()
+    .filter(s -> s.getStatus() == <span class="cls">COMPLETED</span>)
+    .sorted(Comparator.comparingInt(
+        SagaStep::getStepOrder).reversed())
+    .forEach(step -> {
+      String topic = COMPENSATION_TOPICS
+        .get(step.getStepName());
+      <span class="kw">if</span> (topic != <span class="kw">null</span>) {
+        kafkaTemplate.send(topic,
+          saga.getCorrelationId(),
+          saga.getPayload());
+      }
+    });
+}</code></pre>
+</div>
+</div>
+
+<div class="callout info">
+<strong>Idempotency:</strong> A UNIQUE constraint on <code>(correlation_id, saga_type)</code> prevents duplicate saga starts — safe to retry startPolicyIssuanceSaga() multiple times.
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     PATTERN: IDEMPOTENCY
+════════════════════════════════════════════════════ -->
+<section id="idempotency" class="anchor-target">
+<h2 class="section-title">Idempotency Pattern</h2>
+
+<div class="pattern-header">
+  <div class="pattern-icon" style="background:var(--orange-light)">🔑</div>
+  <div>
+    <strong>Service:</strong> payment-service<br>
+    <span style="font-size:13px;color:var(--text-muted)">Prevents duplicate payments — safe to retry the same request</span>
+  </div>
+</div>
+
+<div class="two-col">
+<div>
+<h3>Database Enforcement</h3>
+<pre><code><span class="cmt">-- payments table</span>
+CREATE TABLE payments (
+    id               UUID PRIMARY KEY,
+    payment_id       VARCHAR(50) UNIQUE NOT NULL,
+    idempotency_key  VARCHAR(100) UNIQUE NOT NULL, <span class="cmt">← DB-level lock</span>
+    payment_type     VARCHAR(30) NOT NULL,
+    status           VARCHAR(30) NOT NULL,
+    amount           DECIMAL(12,2) NOT NULL,
+    policy_id        VARCHAR(50),
+    claim_id         VARCHAR(50),
+    stripe_payment_intent_id VARCHAR(100),
+    retry_count      INT DEFAULT 0,
+    next_retry_at    TIMESTAMPTZ,
+    failure_reason   TEXT
+);</code></pre>
+</div>
+<div>
+<h3>Service-Level Check</h3>
+<pre><code><span class="kw">public</span> PaymentResponse <span class="mtd">collectPremium</span>(
+    PremiumPaymentRequest req) {
+
+  <span class="cmt">// Check idempotency key first</span>
+  <span class="kw">return</span> paymentRepo
+    .findByIdempotencyKey(req.getIdempotencyKey())
+    .map(PaymentResponse::from)   <span class="cmt">// already processed</span>
+    .orElseGet(() ->
+      createAndProcessPayment(req)  <span class="cmt">// new payment</span>
+    );
+}
+
+<span class="cmt">// Retry scheduler</span>
+<span class="ann">@Scheduled</span>(fixedDelay = <span class="num">300_000</span>) <span class="cmt">// 5 min</span>
+<span class="kw">public void</span> <span class="mtd">retryFailedPayments</span>() {
+  <span class="cmt">// Max 3 retries, exponential backoff</span>
+  paymentRepo.findRetryable(<span class="cls">FAILED</span>, <span class="num">3</span>, Instant.now())
+    .forEach(<span class="kw">this</span>::reprocessPayment);
+}</code></pre>
+</div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     PATTERN: CIRCUIT BREAKER
+════════════════════════════════════════════════════ -->
+<section id="circuitbreaker" class="anchor-target">
+<h2 class="section-title">Circuit Breaker Pattern</h2>
+
+<div class="pattern-header">
+  <div class="pattern-icon" style="background:var(--red-light)">⚡</div>
+  <div>
+    <strong>Library:</strong> Resilience4j 2.2 (every service)<br>
+    <span style="font-size:13px;color:var(--text-muted)">Prevents cascading failures when external services are down</span>
+  </div>
+</div>
+
+<div class="diagram-wrap">
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> CLOSED : Initial state\n(normal operation)
+    CLOSED --> OPEN : Failure rate ≥ 50%\n(over last 10 calls)
+    OPEN --> HALF_OPEN : Wait 30s
+    HALF_OPEN --> CLOSED : 3 probe calls succeed
+    HALF_OPEN --> OPEN : Any probe call fails
+</div>
+</div>
+
+<pre><code><span class="cmt"># customer-service application.yml</span>
+resilience4j:
+  circuitbreaker:
+    instances:
+      kyc-service:
+        registerHealthIndicator: <span class="kw">true</span>
+        slidingWindowSize: <span class="num">10</span>           <span class="cmt"># evaluate last 10 calls</span>
+        permittedNumberOfCallsInHalfOpenState: <span class="num">3</span>
+        failureRateThreshold: <span class="num">50</span>        <span class="cmt"># open at 50% failure rate</span>
+        waitDurationInOpenState: <span class="num">30</span>s    <span class="cmt"># stay open 30s before half-open</span></code></pre>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     PATTERN: OPTIMISTIC LOCKING
+════════════════════════════════════════════════════ -->
+<section id="optimistic" class="anchor-target">
+<h2 class="section-title">Optimistic Locking</h2>
+
+<div class="pattern-header">
+  <div class="pattern-icon" style="background:var(--green-light)">🔒</div>
+  <div>
+    <strong>Applied to:</strong> All mutable JPA entities in all services<br>
+    <span style="font-size:13px;color:var(--text-muted)">Prevents lost updates in concurrent modification scenarios</span>
+  </div>
+</div>
+
+<pre><code><span class="cmt">// Every mutable entity has this field</span>
+<span class="ann">@Entity</span>
+<span class="kw">public class</span> <span class="cls">Customer</span> {
+  <span class="cmt">// ... other fields ...</span>
+
+  <span class="ann">@Version</span>
+  <span class="kw">private</span> Long version;  <span class="cmt">// JPA increments this on every UPDATE</span>
+                          <span class="cmt">// If version doesn't match, throws OptimisticLockException</span>
+}
+
+<span class="cmt">// Generated SQL: UPDATE customers SET ... WHERE id=? AND version=?</span>
+<span class="cmt">// If 0 rows updated → concurrent modification detected → rollback</span></code></pre>
+
+<div class="callout tip">
+<strong>Interview Insight:</strong> Optimistic locking is better than pessimistic (SELECT FOR UPDATE) for read-heavy workloads. It only adds overhead on actual conflicts. For event sourcing, the UNIQUE(policy_id, event_version) constraint serves the same purpose.
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     PATTERN: FRAUD DETECTION
+════════════════════════════════════════════════════ -->
+<section id="fraud" class="anchor-target">
+<h2 class="section-title">Fraud Detection — Redis Velocity Counters</h2>
+
+<div class="pattern-header">
+  <div class="pattern-icon" style="background:var(--red-light)">🔍</div>
+  <div>
+    <strong>Service:</strong> fraud-detection-service (:8088)<br>
+    <span style="font-size:13px;color:var(--text-muted)">Rule-based scoring engine with target SLA &lt; 200ms. Redis for O(1) counter lookups.</span>
+  </div>
+</div>
+
+<div class="two-col">
+<div>
+<h3>Redis Velocity Counter Keys</h3>
+<pre><code><span class="cmt">// Key format: fraud:velocity:{entity}:{id}:claims:{window}</span>
+fraud:velocity:customer:{customerId}:claims:30d
+fraud:velocity:customer:{customerId}:claims:7d
+fraud:velocity:address:{hashCode}:claims:90d
+fraud:velocity:broker:{brokerId}:claims:7d
+
+<span class="cmt">// On each new claim filed:</span>
+Long count = redisTemplate.opsForValue()
+  .increment(<span class="str">"fraud:velocity:customer:"</span>
+    + customerId + <span class="str">":claims:30d"</span>);
+
+<span class="kw">if</span> (count == <span class="num">1</span>) { <span class="cmt">// first increment → set TTL</span>
+  redisTemplate.expire(key, <span class="num">30</span>, <span class="cls">TimeUnit.DAYS</span>);
+}</code></pre>
+</div>
+<div>
+<h3>Scoring Rules</h3>
+<pre><code><span class="cmt">// FraudScoringEngine - target < 200ms</span>
+<span class="kw">int</span> score = <span class="num">0</span>;
+
+<span class="cmt">// Rule 1: High claim velocity (30d)</span>
+<span class="kw">if</span> (customerClaims30d >= <span class="num">3</span>) score += <span class="num">25</span>;
+
+<span class="cmt">// Rule 2: Address claim concentration (90d)</span>
+<span class="kw">if</span> (addressClaims90d >= <span class="num">2</span>) score += <span class="num">20</span>;
+
+<span class="cmt">// Rule 3: Broker claim velocity (7d)</span>
+<span class="kw">if</span> (brokerClaims7d >= <span class="num">10</span>) score += <span class="num">15</span>;
+
+<span class="cmt">// Rule 4: Weekend / holiday loss date</span>
+<span class="kw">if</span> (isWeekendOrHoliday(lossDate)) score += <span class="num">5</span>;
+
+<span class="cmt">// Rule 5: Multiple claims in 7d</span>
+<span class="kw">if</span> (customerClaims7d >= <span class="num">2</span>) score += <span class="num">20</span>;
+
+<span class="cmt">// Cap at 100. CRITICAL (>= 80) → auto-open fraud case</span>
+score = Math.min(score, <span class="num">100</span>);</code></pre>
+</div>
+</div>
+
+<h3>Risk Levels</h3>
+<div class="card-grid">
+  <div class="card green"><strong>LOW</strong>: Score 0–39<br><span style="font-size:13px">Normal claims processing</span></div>
+  <div class="card yellow"><strong>MEDIUM</strong>: Score 40–59<br><span style="font-size:13px">Enhanced review</span></div>
+  <div class="card orange"><strong>HIGH</strong>: Score 60–79<br><span style="font-size:13px">Manual adjuster review</span></div>
+  <div class="card red"><strong>CRITICAL</strong>: Score 80–100<br><span style="font-size:13px">Auto-open fraud case</span></div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     PATTERN: 4-EYES APPROVAL
+════════════════════════════════════════════════════ -->
+<section id="foureyes" class="anchor-target">
+<h2 class="section-title">4-Eyes Approval Rule</h2>
+
+<div class="pattern-header">
+  <div class="pattern-icon" style="background:var(--red-light)">👁️</div>
+  <div>
+    <strong>Service:</strong> claims-service<br>
+    <span style="font-size:13px;color:var(--text-muted)">Claims above $10,000 require a second approver (supervisor)</span>
+  </div>
+</div>
+
+<pre><code><span class="cmt">// ClaimsService.approveClaim()</span>
+<span class="kw">public void</span> <span class="mtd">approveClaim</span>(String claimId, BigDecimal approvedAmount, String approvedBy) {
+  Claim claim = claimRepo.findByClaimId(claimId).orElseThrow();
+
+  <span class="kw">if</span> (approvedAmount.compareTo(<span class="kw">new</span> <span class="cls">BigDecimal</span>(<span class="str">"10000"</span>)) > <span class="num">0</span>) {
+    <span class="cmt">// Log that supervisor approval is required</span>
+    <span class="cmt">// RBAC enforced at API layer via @PreAuthorize("hasRole('SUPERVISOR')")</span>
+    log.info(<span class="str">"High-value claim {} requires supervisor approval for amount {}"</span>,
+             claimId, approvedAmount);
+  }
+
+  claim.setStatus(<span class="cls">APPROVED</span>);
+  claim.setPaidAmount(approvedAmount);
+  claimRepo.save(claim);
+  publishApprovedEvent(claim);
+}
+
+<span class="cmt">// Controller - RBAC enforces the 4-eyes rule</span>
+<span class="ann">@PostMapping</span>(<span class="str">"/{claimId}/approve"</span>)
+<span class="ann">@PreAuthorize</span>(<span class="str">"hasAnyRole('ADJUSTER', 'SUPERVISOR')"</span>)
+<span class="kw">public void</span> <span class="mtd">approveClaim</span>(<span class="ann">@PathVariable</span> String claimId,
+                         <span class="ann">@RequestBody</span> ApproveRequest req) {
+  claimsService.approveClaim(claimId, req.getAmount(), req.getApprovedBy());
+}</code></pre>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     FLOW: CUSTOMER REGISTRATION
+════════════════════════════════════════════════════ -->
+<section id="flow-registration" class="anchor-target">
+<h2 class="section-title">Flow: Customer Registration + KYC</h2>
+<div class="diagram-wrap">
+<div class="mermaid">
+sequenceDiagram
+    participant C as Client
+    participant CS as customer-service
+    participant DB as PostgreSQL
+    participant PUB as OutboxPublisher
+    participant KAFKA as Kafka
+    participant KYC as External KYC Provider
+    participant NS as notification-service
+
+    C->>CS: POST /api/v1/customers {name, email, ssn, dob}
+    CS->>CS: BCrypt(12).encode(ssn) → ssnHash
+    CS->>DB: BEGIN TX
+    CS->>DB: INSERT customers (status=PENDING_KYC, kycStatus=PENDING)
+    CS->>DB: INSERT outbox_events (status=PENDING, type=customer.customers.registered)
+    CS->>DB: COMMIT
+    CS-->>C: 201 Created {customerId}
+
+    Note over PUB: @Scheduled every 100ms
+    PUB->>DB: SELECT outbox_events WHERE status=PENDING
+    PUB->>KAFKA: publish(customer.customers.registered)
+    PUB->>DB: UPDATE outbox SET status=PROCESSED
+
+    KYC-->>CS: POST /api/v1/customers/{id}/kyc/callback {passed=true}
+    CS->>DB: UPDATE customers SET kycStatus=APPROVED
+    CS->>DB: INSERT outbox_events (customer.customers.kyc-completed)
+
+    KAFKA->>NS: customer.customers.kyc-completed → send welcome email
+</div>
+</div>
+
+<h3>Customer Status Machine</h3>
+<div class="diagram-wrap">
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> PENDING_KYC : registerCustomer()
+    PENDING_KYC --> KYC_IN_PROGRESS : KYC initiated
+    KYC_IN_PROGRESS --> ACTIVE : kycStatus = APPROVED
+    KYC_IN_PROGRESS --> KYC_FAILED : kycStatus = REJECTED
+    ACTIVE --> SUSPENDED : suspendCustomer()
+    ACTIVE --> DELETED : GDPR erasure (soft delete)
+    KYC_FAILED --> PENDING_KYC : retry KYC
+</div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     FLOW: POLICY ISSUANCE SAGA
+════════════════════════════════════════════════════ -->
+<section id="flow-policy" class="anchor-target">
+<h2 class="section-title">Flow: Policy Issuance Saga</h2>
+<div class="diagram-wrap">
+<div class="mermaid">
+sequenceDiagram
+    participant B as Broker Portal
+    participant PS as policy-service
+    participant WO as workflow-orchestrator
+    participant PCS as premium-calc-service
+    participant PAY as payment-service
+    participant BLS as billing-service
+    participant DS as document-service
+
+    B->>PS: POST /api/v1/policies/quote
+    PS->>PS: Create PolicyProjection (status=QUOTED)
+    PS->>PS: appendEvent(QUOTE_CREATED)
+    PS->>WO: Kafka: startPolicyIssuanceSaga(policyId)
+
+    WO->>WO: Create SagaInstance (STARTED)
+    WO->>PCS: Kafka: premiumcalc.commands.calculate
+
+    PCS-->>WO: Kafka: PREMIUM_CALCULATED (premium=1200.00)
+    WO->>PAY: Kafka: payment.commands.collect-premium {idempotencyKey}
+
+    PAY-->>WO: Kafka: PAYMENT_COLLECTED
+    WO->>PS: Kafka: policy.commands.issue
+
+    PS->>PS: appendEvent(POLICY_ISSUED)
+    PS->>PS: Update projection (status=ISSUED)
+    PS-->>WO: Kafka: POLICY_ISSUED
+
+    WO->>BLS: Kafka: billing.commands.create-schedule
+    BLS-->>WO: Kafka: BILLING_CREATED
+    WO->>DS: Kafka: document.commands.generate
+
+    DS-->>WO: Kafka: DOCUMENTS_GENERATED
+    WO->>WO: SagaInstance status=COMPLETED ✓
+</div>
+</div>
+
+<h3>Compensation Flow (on payment failure)</h3>
+<div class="diagram-wrap">
+<div class="mermaid">
+sequenceDiagram
+    participant PAY as payment-service
+    participant WO as workflow-orchestrator
+    participant PCS as premium-calc-service
+
+    PAY-->>WO: Kafka: payment.payments.failed
+    WO->>WO: failSaga() → status=COMPENSATING
+
+    Note over WO: Compensate in REVERSE order
+    WO->>PCS: Kafka: premiumcalc.commands.cancel-calculation
+    WO->>WO: status=COMPENSATED
+</div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     FLOW: CLAIMS PROCESSING
+════════════════════════════════════════════════════ -->
+<section id="flow-claims" class="anchor-target">
+<h2 class="section-title">Flow: Claims Processing Saga</h2>
+<div class="diagram-wrap">
+<div class="mermaid">
+sequenceDiagram
+    participant CU as Customer
+    participant CLS as claims-service
+    participant FDS as fraud-detection-service
+    participant WO as workflow-orchestrator
+    participant PAY as payment-service
+    participant NS as notification-service
+
+    CU->>CLS: POST /api/v1/claims {policyId, dateOfLoss, amount, description}
+    CLS->>CLS: Create Claim (status=FNOL_RECEIVED)
+    CLS->>WO: Kafka: claims.claims.filed
+
+    WO->>FDS: Kafka: fraud scoring request
+    FDS->>FDS: Check Redis velocity counters
+    FDS->>FDS: Apply scoring rules (target < 200ms)
+    FDS-->>CLS: Kafka: fraud.scores.returned {score=35, riskLevel=LOW}
+
+    CLS->>CLS: updateFraudScore(35)
+    CLS->>CLS: verifyCoverage() → covered=true
+    CLS->>CLS: assignAdjuster(adjusterId)
+    CLS->>CLS: setReserve(amount=8000)
+
+    Note over CLS: amount <= $10K → single approver OK
+    CLS->>CLS: approveClaim(approved=7500)
+    CLS->>PAY: Kafka: claims.claims.approved → payment.commands.payout
+
+    PAY->>PAY: Stripe payout to customer
+    PAY-->>CLS: payment.payments.completed
+    CLS->>CLS: closeClaim()
+    CLS->>NS: Kafka: → send SMS/email to customer
+</div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     FLOW: PAYMENT
+════════════════════════════════════════════════════ -->
+<section id="flow-payment" class="anchor-target">
+<h2 class="section-title">Flow: Payment Processing</h2>
+<div class="diagram-wrap">
+<div class="mermaid">
+flowchart TD
+    A[Receive PremiumPaymentRequest\n+ idempotencyKey] --> B{findByIdempotencyKey?}
+    B -->|Found| C[Return existing payment\n✓ Idempotent]
+    B -->|Not found| D[Create Payment\nstatus=PROCESSING]
+    D --> E[Call Stripe API\ncreate PaymentIntent]
+    E --> F{Stripe success?}
+    F -->|Yes| G[Update status=COMPLETED\nstripePaymentIntentId set]
+    F -->|No| H[Update status=FAILED\nfailureReason set]
+    G --> I[INSERT outbox_events\npayment.payments.premium-received]
+    H --> J{retryCount < 3?}
+    J -->|Yes| K[Set nextRetryAt\nexponential backoff]
+    J -->|No| L[Final failure\npublish payment.payments.failed]
+    K --> M[@Scheduled 5min\nretryFailedPayments]
+    M --> E
+</div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     FLOW: FRAUD SCORING
+════════════════════════════════════════════════════ -->
+<section id="flow-fraud" class="anchor-target">
+<h2 class="section-title">Flow: Fraud Scoring</h2>
+<div class="diagram-wrap">
+<div class="mermaid">
+flowchart LR
+    A[Claim Filed Event\nfrom Kafka] --> B[FraudScoringEngine\n.score]
+    B --> C[VelocityService\nQuery Redis counters]
+    C --> D[(Redis\nINGEST keys)]
+    D --> C
+    C --> E[Apply 5 Rules\naccumulate score]
+    E --> F{score >= 80?}
+    F -->|CRITICAL| G[Auto-create FraudCase\nDB insert]
+    F -->|Any level| H[Publish\nfraud.scores.returned]
+    H --> I[claims-service\nupdateFraudScore]
+    B --> J[incrementClaimCount\nRedis INCR + EXPIRE]
+</div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     DOCKER / LOCAL DEV
+════════════════════════════════════════════════════ -->
+<section id="docker" class="anchor-target">
+<h2 class="section-title">Docker — Local Dev Environment</h2>
+
+<pre><code>make docker-up       <span class="cmt"># Start all infra + creates Kafka topics (waits 30s)</span>
+make docker-down     <span class="cmt"># Stop everything</span>
+make kafka-topics    <span class="cmt"># Re-create Kafka topics (exec into kafka-1)</span>
+make docker-rebuild  <span class="cmt"># Full teardown → rebuild → restart</span></code></pre>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Container</th><th>Port</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>kafka-1, kafka-2, kafka-3</code></td><td>29092–29094</td><td>3-node KRaft cluster (no ZooKeeper)</td></tr>
+<tr><td><code>postgres-customer</code> (×14)</td><td>5432–5446</td><td>One PostgreSQL per service</td></tr>
+<tr><td><code>redis</code></td><td>6379</td><td>Fraud velocity counters</td></tr>
+<tr><td><code>keycloak</code></td><td>8080</td><td>OIDC identity provider, realm=insurance</td></tr>
+<tr><td><code>prometheus</code></td><td>9091</td><td>Metrics scraping (15s interval)</td></tr>
+<tr><td><code>grafana</code></td><td>3000</td><td>Dashboard visualization</td></tr>
+<tr><td><code>kafka-ui</code></td><td>9090</td><td>Kafka cluster management UI</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Dockerfile (all services)</h3>
+<pre><code>FROM eclipse-temurin:21-jre-alpine
+RUN addgroup -S eip && adduser -S eip -G eip  <span class="cmt"># non-root user</span>
+VOLUME /tmp
+ARG JAR_FILE
+COPY ${JAR_FILE} app.jar
+USER eip
+ENTRYPOINT ["java",
+  "-XX:+UseContainerSupport",          <span class="cmt"># respect container CPU/memory limits</span>
+  "-XX:MaxRAMPercentage=75.0",         <span class="cmt"># use 75% of container RAM for heap</span>
+  "-Djava.security.egd=file:/dev/./urandom",
+  "-jar", "/app.jar"]</code></pre>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     KUBERNETES
+════════════════════════════════════════════════════ -->
+<section id="kubernetes" class="anchor-target">
+<h2 class="section-title">Kubernetes Deployment</h2>
+
+<div class="two-col">
+<div class="card">
+  <h3>Namespaces</h3>
+  <ul style="font-size:14px;padding-left:18px;">
+    <li><code>ns-tier0</code> — customer, policy, claims, payment</li>
+    <li><code>ns-tier1</code> — premium-calc, billing, fraud, ref-data, broker, workflow</li>
+    <li><code>ns-tier2</code> — document, notification, audit</li>
+    <li><code>analytics</code> — analytics-service</li>
+  </ul>
+</div>
+<div class="card">
+  <h3>HPA Configuration</h3>
+  <ul style="font-size:14px;padding-left:18px;">
+    <li>Min replicas: <code>2</code> (guaranteed HA)</li>
+    <li>Max replicas: <code>10</code></li>
+    <li>Scale-up trigger: CPU &gt; <code>70%</code></li>
+    <li>Scale-up trigger: Memory &gt; <code>80%</code></li>
+    <li>PDB: <code>minAvailable: 1</code> during rolling updates</li>
+  </ul>
+</div>
+</div>
+
+<h3>Deployment Template</h3>
+<pre><code><span class="kw">apiVersion</span>: apps/v1
+<span class="kw">kind</span>: Deployment
+<span class="kw">metadata</span>:
+  name: customer-service
+  namespace: ns-tier0
+<span class="kw">spec</span>:
+  replicas: <span class="num">2</span>
+  template:
+    spec:
+      containers:
+        - name: customer-service
+          image: gcr.io/PROJECT_ID/customer-service:latest
+          resources:
+            requests: { cpu: "250m", memory: "512Mi" }
+            limits:   { cpu: "1000m", memory: "1Gi" }
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8081 }
+            initialDelaySeconds: <span class="num">60</span>   <span class="cmt"># JVM startup time</span>
+            periodSeconds: <span class="num">15</span>
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8081 }
+            initialDelaySeconds: <span class="num">30</span>   <span class="cmt"># separate from liveness</span>
+            periodSeconds: <span class="num">10</span>
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: customer-db-secret, key: password }
+          envFrom:
+            - configMapRef: { name: kafka-config }
+            - configMapRef: { name: keycloak-config }</code></pre>
+
+<div class="callout tip">
+<strong>Liveness vs Readiness:</strong> Liveness restarts the pod if stuck. Readiness removes it from load balancer during startup or DB connectivity issues. Both use Spring Actuator's <code>/actuator/health/liveness</code> and <code>/actuator/health/readiness</code> probes.
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     MONITORING
+════════════════════════════════════════════════════ -->
+<section id="monitoring" class="anchor-target">
+<h2 class="section-title">Monitoring Stack</h2>
+
+<div class="two-col">
+<div>
+<h3>Prometheus Scrape Config</h3>
+<pre><code><span class="cmt"># prometheus.yml</span>
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: customer-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['customer-service:8081']
+    relabel_configs:
+      - target_label: tier
+        replacement: tier0
+  <span class="cmt"># ... repeated for all 14 services</span></code></pre>
+</div>
+<div>
+<h3>Actuator Endpoints</h3>
+<pre><code><span class="cmt"># application.yml — all services</span>
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: <span class="kw">true</span>  <span class="cmt"># /liveness + /readiness</span></code></pre>
+
+<p style="font-size:13px;color:var(--text-muted);margin-top:12px;">Metrics exposed: JVM heap, GC, thread pools, HikariCP connection pool, Kafka consumer lag, HTTP request duration/count, Resilience4j circuit breaker state.</p>
+</div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     INTERVIEW: JAVA 21
+════════════════════════════════════════════════════ -->
+<section id="interview-java" class="anchor-target">
+<h2 class="section-title">Interview Prep — Java 21</h2>
+
+<details class="qa"><summary>Q: Where are Java records used in this project?</summary>
+<div class="answer">
+<p>All DTOs are Java 21 records. Records provide immutable data carriers with auto-generated constructor, getters, equals, hashCode, and toString — perfect for request/response objects that should not be mutated.</p>
+<pre><code><span class="cmt">// Example DTO as a record</span>
+<span class="kw">public record</span> <span class="cls">CustomerRegistrationRequest</span>(
+    String firstName,
+    String lastName,
+    <span class="ann">@Email</span> String email,
+    String ssn,
+    LocalDate dateOfBirth
+) {}</code></pre>
+<p>Records reduce boilerplate (no need for Lombok @Data), are thread-safe by design, and work naturally with Jackson for JSON serialization.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: What Java 21 virtual threads (Project Loom) opportunities exist here?</summary>
+<div class="answer">
+<p>While not explicitly in the code, Spring Boot 3.2 supports virtual threads via <code>spring.threads.virtual.enabled=true</code>. This would benefit the OutboxPublisher's blocking I/O (DB polling + Kafka publish), Kafka listeners, and external API calls (Stripe, SendGrid, Twilio) — all are I/O-bound and would scale better with virtual threads than platform threads.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: What sealed classes / pattern matching opportunities exist?</summary>
+<div class="answer">
+<p>The <code>SagaStatus</code> enum (STARTED, IN_PROGRESS, COMPLETED, COMPENSATING, COMPENSATED) and <code>PolicyStatus</code> enum could be modeled as sealed interfaces with pattern matching in switch expressions:</p>
+<pre><code><span class="cmt">// Modern Java 21 pattern matching in switch</span>
+String message = <span class="kw">switch</span> (claim.getStatus()) {
+  <span class="kw">case</span> APPROVED -> <span class="str">"Claim approved for $"</span> + claim.getPaidAmount();
+  <span class="kw">case</span> DENIED   -> <span class="str">"Coverage verification failed"</span>;
+  <span class="kw">case</span> CLOSED   -> <span class="str">"Claim closed"</span>;
+  <span class="kw">default</span>       -> <span class="str">"Processing: "</span> + claim.getStatus();
+};</code></pre>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How is @Transactional(propagation = MANDATORY) used in policy-service?</summary>
+<div class="answer">
+<p><code>PolicyEventStore.appendEvent()</code> is annotated with <code>@Transactional(propagation = MANDATORY)</code>. This means the method <em>requires</em> an existing transaction — it will throw <code>IllegalTransactionStateException</code> if called outside one. This is a safety guarantee: the event store write must always be part of a larger business transaction so that the business entity write and the event store write are atomic. The caller (e.g., PolicyService.issuePolicy()) provides the outer <code>@Transactional</code> boundary.</p>
+</div>
+</details>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     INTERVIEW: SPRING BOOT
+════════════════════════════════════════════════════ -->
+<section id="interview-spring" class="anchor-target">
+<h2 class="section-title">Interview Prep — Spring Boot 3.2</h2>
+
+<details class="qa"><summary>Q: How does RFC 7807 ProblemDetail work in the GlobalExceptionHandler?</summary>
+<div class="answer">
+<p>Spring Boot 3.x natively supports RFC 7807 (Problem Details for HTTP APIs) via the <code>ProblemDetail</code> class. The GlobalExceptionHandler uses <code>@RestControllerAdvice</code> to intercept exceptions and return structured error responses instead of raw stack traces.</p>
+<pre><code><span class="cmt">// Returns: Content-Type: application/problem+json</span>
+{
+  "type": "/errors/customer-not-found",
+  "status": 404,
+  "detail": "Customer CUST-123 not found",
+  "timestamp": "2024-03-15T10:30:00Z"
+}
+
+{
+  "type": "/errors/validation-failed",
+  "status": 400,
+  "detail": "Validation failed",
+  "errors": { "email": "must be a valid email", "ssn": "must not be blank" },
+  "timestamp": "2024-03-15T10:30:00Z"
+}</code></pre>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How does Spring's OAuth2 resource server validate Keycloak JWTs?</summary>
+<div class="answer">
+<p>Each service is configured as an OAuth2 Resource Server. On startup, Spring fetches Keycloak's JWKS (public keys) from <code>KEYCLOAK_JWK_URI</code>. For each incoming request, Spring Security validates: (1) JWT signature using the RS256 public key, (2) expiration time, (3) issuer claim. No session storage needed — fully stateless. The JWKS URI is cached and periodically refreshed.</p>
+<pre><code><span class="cmt"># application.yml</span>
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri:
+  ${KEYCLOAK_JWKS_URI:http://localhost:8180/realms/insurance/protocol/openid-connect/certs}</code></pre>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How does Flyway integrate with Spring Boot and why ddl-auto: validate?</summary>
+<div class="answer">
+<p>Spring Boot auto-configures Flyway when it's on the classpath. On startup, Flyway runs pending migrations in version order. <code>ddl-auto: validate</code> tells Hibernate to verify that the JPA entity mappings match the existing schema — but <em>never change it</em>. This separates concerns: Flyway owns schema evolution, JPA only talks to the DB. This prevents accidental schema drops/modifications in production.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How does @Scheduled work for OutboxPublisher and payment retry?</summary>
+<div class="answer">
+<p><code>@Scheduled(fixedDelay = 100)</code> on OutboxPublisher means: wait 100ms after the previous execution completes before starting the next one (not a fixed rate). This prevents overlapping executions if publishing is slow. Payment retry uses <code>fixedDelay = 300_000</code> (5 minutes). Both require <code>@EnableScheduling</code> on a configuration class. In Kubernetes with multiple pods, both will run — OutboxPublisher uses DB row locking to prevent duplicate publishes.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How is Caffeine cache configured in premium-calc and reference-data?</summary>
+<div class="answer">
+<p>premium-calc-service uses a 1-hour TTL cache for computed rates. reference-data-service uses a 4-hour TTL for rate tables and state rules. These are read-heavy, rarely-changing datasets — perfect for local in-process caching. Caffeine is the default cache provider in Spring Boot and supports size-based eviction and TTL.</p>
+<pre><code><span class="cmt">// Typical configuration</span>
+<span class="ann">@Cacheable</span>(value = <span class="str">"rates"</span>, key = <span class="str">"#stateCode + '-' + #productCode"</span>)
+<span class="kw">public</span> RateTable <span class="mtd">getRates</span>(String stateCode, String productCode) { ... }
+
+<span class="cmt"># application.yml</span>
+spring.cache.caffeine.spec: maximumSize=1000,expireAfterWrite=1h</code></pre>
+</div>
+</details>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     INTERVIEW: MICROSERVICES
+════════════════════════════════════════════════════ -->
+<section id="interview-microservices" class="anchor-target">
+<h2 class="section-title">Interview Prep — Microservices</h2>
+
+<details class="qa"><summary>Q: Why does each service have its own database?</summary>
+<div class="answer">
+<p><strong>Database per service</strong> is a core microservices pattern. It provides: (1) <strong>loose coupling</strong> — services can evolve their schema independently, (2) <strong>technology freedom</strong> — each service could use a different DB type, (3) <strong>failure isolation</strong> — one DB going down doesn't affect others, (4) <strong>independent scaling</strong> — the payment DB can be scaled separately. The tradeoff is no cross-service joins — you use eventual consistency via Kafka events instead.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How does the platform avoid distributed transactions?</summary>
+<div class="answer">
+<p>Instead of 2-phase commit (2PC), the platform uses two patterns: (1) <strong>Transactional Outbox</strong> — ensures at-least-once delivery of events without distributed transactions, (2) <strong>Saga Pattern</strong> — replaces ACID transactions with a sequence of local transactions + compensating transactions on failure. This trades strong consistency for eventual consistency with explicit rollback semantics.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How is the audit trail implemented? Why is it separate from domain services?</summary>
+<div class="answer">
+<p>audit-service (cg-audit consumer group) subscribes to <em>all</em> domain Kafka topics. Every domain event automatically flows into the audit log without any domain service needing to know about audit. This is the <strong>Event-Carried State Transfer</strong> pattern. The audit table is append-only — no updates or deletes. This separation means adding audit requirements never touches business logic.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: What's the difference between the outbox pattern and a choreography saga?</summary>
+<div class="answer">
+<p><strong>Outbox pattern</strong> solves the dual-write problem for a single service publishing events reliably. <strong>Choreography saga</strong> has each service react to events and emit the next event — no central coordinator. <strong>Orchestration saga</strong> (what this platform uses) has a central workflow-orchestrator that commands each service explicitly. Orchestration is easier to debug (saga state in DB) but adds a dependency; choreography is more decoupled but harder to track flows.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How does the platform handle service discovery in Kubernetes?</summary>
+<div class="answer">
+<p>In Kubernetes, services communicate via Kubernetes DNS (e.g., <code>customer-service.ns-tier0.svc.cluster.local</code>). This replaces Eureka/Consul for service discovery. Kafka brokers are referenced by their internal DNS names (kafka-1:9092). The Keycloak JWKS endpoint is resolved via the keycloak service DNS name.</p>
+</div>
+</details>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     INTERVIEW: KAFKA
+════════════════════════════════════════════════════ -->
+<section id="interview-kafka" class="anchor-target">
+<h2 class="section-title">Interview Prep — Kafka</h2>
+
+<details class="qa"><summary>Q: Why acks=all + enable.idempotence=true + retries=3?</summary>
+<div class="answer">
+<p><strong>acks=all</strong> (equivalent to acks=-1): the producer waits for acknowledgment from <em>all</em> in-sync replicas (ISRs), not just the leader. Combined with <code>min.insync.replicas=2</code>, this means at least 2 of 3 replicas must have the message before the producer considers it sent. <strong>enable.idempotence=true</strong> assigns a producer ID + sequence number to each message, allowing the broker to deduplicate retried messages (exactly-once producer semantics). <strong>retries=3</strong> handles transient leader elections. Together: no data loss, no duplicates from the producer side.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: Why disable auto-commit and use AckMode.RECORD?</summary>
+<div class="answer">
+<p>With <code>enable-auto-commit=false</code> + <code>AckMode.RECORD</code>, the offset is committed only after the message processing code returns successfully. If the service crashes mid-processing, the offset is not committed, so the message will be redelivered to another instance. This gives <strong>at-least-once delivery</strong> semantics. With auto-commit, you could commit the offset before processing completes, losing the message on crash (<em>at-most-once</em>). The tradeoff is that consumers must be idempotent — the same message might be processed twice.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: Why do high-volume topics have 24 partitions?</summary>
+<div class="answer">
+<p>Partitions are the unit of parallelism in Kafka. With 24 partitions and <code>concurrency=3</code> per consumer pod, you need 8 pods to fully consume a topic in parallel (24/3=8). High-volume topics (policy.policies.issued, payment.payments.*, claims.claims.*) are expected to have high throughput, so more partitions allow horizontal scaling. Low-volume topics (audit, reference data) use 3-6 partitions since throughput requirements are lower.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: Why use KRaft mode instead of ZooKeeper?</summary>
+<div class="answer">
+<p>KRaft (Kafka Raft) is the new consensus mechanism that eliminates ZooKeeper as a dependency. Benefits: (1) simpler deployment — no separate ZooKeeper ensemble, (2) faster controller failover, (3) supports more partitions per cluster, (4) ZooKeeper is deprecated as of Kafka 3.5. This platform uses KRaft with 3 nodes where each node acts as both broker and controller.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How does the audit-service consume ALL topics without missing events?</summary>
+<div class="answer">
+<p>audit-service uses its own consumer group <code>cg-audit</code> which maintains its own offset per partition. Each consumer group gets a full, independent copy of every message. The <code>auto-offset-reset: earliest</code> setting ensures that if the audit service restarts with a new group ID, it reads from the beginning. The append-only audit table means duplicate processing is safe (idempotent inserts).</p>
+</div>
+</details>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     INTERVIEW: SYSTEM DESIGN
+════════════════════════════════════════════════════ -->
+<section id="interview-systemdesign" class="anchor-target">
+<h2 class="section-title">Interview Prep — System Design</h2>
+
+<details class="qa"><summary>Q: How would you scale the payment-service to handle 10x traffic?</summary>
+<div class="answer">
+<p><strong>Horizontal scaling:</strong> HPA already configured (max 10 pods). Kafka consumer concurrency=3 per pod × 10 pods = 30 parallel consumers for 24-partition topic. <strong>DB bottleneck:</strong> HikariCP max-pool=20 per pod × 10 pods = 200 connections to one PostgreSQL — this becomes the bottleneck. Solutions: (1) PgBouncer connection pooler between service and DB, (2) read replicas for status queries, (3) partition the payments table by payment_date or customerId for true horizontal DB scaling.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: What happens if the workflow-orchestrator crashes mid-saga?</summary>
+<div class="answer">
+<p>The saga state is persisted in the <code>saga_instances</code> and <code>saga_steps</code> tables. On restart, the orchestrator can query for <code>IN_PROGRESS</code> sagas and resume them. The current step's command topic can be re-published — services must be idempotent (payment uses idempotency key, policy issue is guarded by unique policyId). The unique constraint on <code>(correlation_id, saga_type)</code> prevents starting duplicate sagas.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How does the system prevent the "thundering herd" problem on startup?</summary>
+<div class="answer">
+<p>The readinessProbe at <code>/actuator/health/readiness</code> with <code>initialDelaySeconds: 30</code> keeps pods out of the load balancer until they're ready. For OutboxPublisher, the 100ms poll interval naturally spreads DB load. Multiple pods polling the outbox simultaneously could cause duplicate publishes — this is handled by the status check (only PENDING events are processed) and ideally a <code>SELECT FOR UPDATE SKIP LOCKED</code> pattern to claim events exclusively.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How would you design the fraud detection for real-time performance?</summary>
+<div class="answer">
+<p>The current design achieves &lt;200ms by: (1) <strong>Redis INCR</strong> — O(1) atomic counter operations, (2) <strong>rule-based scoring</strong> — no ML model inference, (3) <strong>pre-computed counters</strong> — counters are maintained incrementally on each claim filed, not computed on-demand. To scale further: Redis Cluster for counter sharding, Kafka Streams for windowed aggregations, feature store for ML features. For ML, the scoring engine is designed as a pluggable component.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How is backward compatibility maintained for Kafka message schemas?</summary>
+<div class="answer">
+<p>Avro schemas with a Schema Registry enforce <strong>schema evolution rules</strong>. The platform uses <strong>BACKWARD compatibility</strong> by default — new consumers can read messages written by old producers. Rules: (1) new fields must have defaults (e.g., <code>"default": null</code> for optional fields), (2) never remove fields without deprecation, (3) never change field types. In the Avro schemas shown, all optional fields use union type <code>["null", "string"]</code> with <code>"default": null</code>.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How would you implement GDPR right-to-erasure in this microservices architecture?</summary>
+<div class="answer">
+<p>The customer-service implements soft delete: <code>requestGdprErasure()</code> anonymizes PII fields (name → "REDACTED", email → anonymized hash, ssnHash cleared), sets <code>deleted_at</code> timestamp, and emits <code>customer.customers.gdpr-erased</code> event. Downstream services (notification, analytics) consume this event and purge their own copies of customer data. This is the <strong>event-driven data erasure</strong> pattern — each service is responsible for its own PII. Kafka logs are a challenge: compaction with null-value tombstone records is used to erase from the log.</p>
+</div>
+</details>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     INTERVIEW: API DESIGN
+════════════════════════════════════════════════════ -->
+<section id="interview-api" class="anchor-target">
+<h2 class="section-title">Interview Prep — API Design</h2>
+
+<details class="qa"><summary>Q: How does the platform follow REST best practices?</summary>
+<div class="answer">
+<p><strong>Versioning:</strong> All endpoints use <code>/api/v1/</code> prefix. <strong>Resource naming:</strong> plural nouns (<code>/customers</code>, <code>/policies</code>, <code>/claims</code>). <strong>HTTP verbs:</strong> POST for create, GET for read, PUT for full update, PATCH for partial, DELETE for erasure. <strong>Status codes:</strong> 201 Created for POST, 404 with ProblemDetail for not-found, 409 Conflict for duplicates, 400 for validation failures. <strong>Error format:</strong> RFC 7807 ProblemDetail with machine-readable type URIs.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How is API security designed for multi-role access?</summary>
+<div class="answer">
+<p>Keycloak manages roles: CUSTOMER, ADMIN, ADJUSTER, SUPERVISOR, BROKER, COMPLIANCE, SYSTEM. Each endpoint declares its role requirements via <code>@PreAuthorize</code>. The SYSTEM role is for service-to-service calls (e.g., KYC callback from external provider). Role hierarchy means ADMIN can do anything CUSTOMER can do. Claims requiring supervisor approval for &gt;$10K use the SUPERVISOR role — an ADJUSTER JWT cannot call approve on high-value claims.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How would you add API rate limiting?</summary>
+<div class="answer">
+<p>Resilience4j already has a RateLimiter module. At the API Gateway layer (not yet implemented), rate limiting by customer ID or IP would be more effective. For the fraud scoring endpoint (&lt;200ms SLA), rate limiting protects against abuse. A Redis-based token bucket (similar to the velocity counters pattern already in use) would be idiomatic here, with keys like <code>ratelimit:{customerId}:{endpoint}:{minute}</code> and INCR + EXPIRE.</p>
+</div>
+</details>
+
+<details class="qa"><summary>Q: How does the payment idempotency key work end-to-end?</summary>
+<div class="answer">
+<p>The caller (workflow-orchestrator) generates a UUID as idempotency key and includes it in the payment command. The payment-service first checks if a payment with that key exists (<code>findByIdempotencyKey()</code>). If found, it returns the existing result without calling Stripe again. If the key is new, it creates the payment, calls Stripe, and stores the result. The UNIQUE constraint at DB level ensures no race condition — two concurrent requests with the same key will result in one succeeding and one getting a constraint violation, which is caught and returns the existing record.</p>
+</div>
+</details>
+
+</section>
+
+<!-- UML CLASS DIAGRAM -->
+<section id="uml-class" class="anchor-target">
+<h2 class="section-title">Key Entity Relationships (UML)</h2>
+<div class="diagram-wrap">
+<div class="mermaid">
+classDiagram
+    class Customer {
+        +UUID id
+        +String customerId
+        +String firstName
+        +String lastName
+        +String email
+        +String ssnHash
+        +CustomerStatus status
+        +KycStatus kycStatus
+        +Address address
+        +Long version
+        +Instant deletedAt
+    }
+
+    class PolicyProjection {
+        +UUID id
+        +String policyId
+        +String customerId
+        +String brokerId
+        +LineOfBusiness lob
+        +PolicyStatus status
+        +BigDecimal premiumAmount
+        +LocalDate effectiveDate
+        +LocalDate expirationDate
+        +Long version
+    }
+
+    class PolicyEvent {
+        +UUID id
+        +String policyId
+        +String eventType
+        +Long eventVersion
+        +String payload
+        +String correlationId
+        +Instant occurredAt
+    }
+
+    class Claim {
+        +UUID id
+        +String claimId
+        +String policyId
+        +String customerId
+        +ClaimStatus status
+        +BigDecimal claimAmount
+        +BigDecimal reserveAmount
+        +Integer fraudScore
+        +Boolean coverageVerified
+    }
+
+    class Payment {
+        +UUID id
+        +String paymentId
+        +String idempotencyKey
+        +PaymentType type
+        +PaymentStatus status
+        +BigDecimal amount
+        +String stripePaymentIntentId
+        +Integer retryCount
+    }
+
+    class SagaInstance {
+        +UUID id
+        +SagaType sagaType
+        +SagaStatus sagaStatus
+        +String correlationId
+        +String currentStep
+        +List~SagaStep~ steps
+    }
+
+    class OutboxEvent {
+        +UUID id
+        +String aggregateType
+        +String eventType
+        +String payload
+        +OutboxStatus status
+    }
+
+    Customer "1" --> "many" PolicyProjection : has policies
+    PolicyProjection "1" --> "many" PolicyEvent : events
+    PolicyProjection "1" --> "many" Claim : claims
+    Claim "1" --> "many" Payment : payouts
+    SagaInstance "1" *-- "many" SagaStep : contains
+    Customer ..> OutboxEvent : produces
+    PolicyEvent ..> OutboxEvent : produces
+</div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<div style="margin-top:64px;padding-top:24px;border-top:1px solid var(--border);text-align:center;color:var(--text-muted);font-size:13px;">
+  Enterprise Insurance Platform — Architecture Guide &nbsp;·&nbsp; Spring Boot 3.2 · Java 21 · Kafka · PostgreSQL · Kubernetes
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'default',
+  themeVariables: {
+    primaryColor: '#eff6ff',
+    primaryTextColor: '#1e293b',
+    primaryBorderColor: '#2563eb',
+    lineColor: '#94a3b8',
+    secondaryColor: '#f0fdf4',
+    tertiaryColor: '#f5f3ff'
+  },
+  flowchart: { curve: 'basis' },
+  sequence: { actorMargin: 50 }
+});
+
+// Active sidebar link on scroll
+const sections = document.querySelectorAll('.anchor-target');
+const links = document.querySelectorAll('#sidebar a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`#sidebar a[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
