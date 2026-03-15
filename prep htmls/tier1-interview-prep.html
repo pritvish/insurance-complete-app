@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Interview Prep — Tier 1: Core Foundations</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f9f8f6;--surface:#ffffff;--border:#e4e2da;--border-light:#ede9e1;
+  --text:#1c1a16;--text-muted:#7a7670;--text-light:#b0aca4;
+  --green:#16a34a;--green-bg:#f0fdf4;--green-border:#bbf7d0;
+  --blue:#1d4ed8;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
+  --amber:#b45309;--amber-bg:#fffbeb;--amber-border:#fde68a;
+  --red:#dc2626;--red-bg:#fef2f2;--red-border:#fecaca;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-border:#ddd6fe;
+  --slate:#334155;--slate-bg:#f8fafc;--slate-border:#e2e8f0;
+}
+body{font-family:'Geist Mono',monospace;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+.page-header{background:var(--text);color:#fff;padding:48px 40px 40px;position:relative;overflow:hidden}
+.page-header::before{content:'';position:absolute;top:-60px;right:-60px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,0.04);pointer-events:none}
+.tier-badge{display:inline-block;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:4px 12px;font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:600;margin-bottom:16px;color:rgba(255,255,255,0.8)}
+.page-header h1{font-family:'DM Serif Display',serif;font-size:38px;font-weight:400;letter-spacing:-0.5px;margin-bottom:8px}
+.page-header .subtitle{font-size:12px;color:rgba(255,255,255,0.5);letter-spacing:1px}
+.meta-row{display:flex;gap:32px;margin-top:24px}
+.meta-item{font-size:11px;color:rgba(255,255,255,0.6)}
+.meta-item strong{color:rgba(255,255,255,0.9);display:block;font-size:20px;margin-bottom:2px}
+.toc-bar{background:#fff;border-bottom:1px solid var(--border);padding:0 40px;display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.toc-btn{flex-shrink:0;padding:14px 18px;font-size:11px;font-family:inherit;background:none;border:none;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.5px;font-weight:500}
+.toc-btn:hover,.toc-btn.active{color:var(--text);border-bottom-color:var(--text)}
+.content{max-width:900px;margin:0 auto;padding:48px 40px}
+/* Concept Page */
+.concept{display:none;animation:fadeIn .3s ease}
+.concept.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.concept-header{margin-bottom:40px}
+.concept-number{font-size:11px;color:var(--text-light);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+.concept-title{font-family:'DM Serif Display',serif;font-size:36px;font-weight:400;letter-spacing:-0.5px;margin-bottom:12px}
+.concept-tagline{font-size:13px;color:var(--text-muted);line-height:1.7;max-width:680px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+/* Section blocks */
+.section{margin-bottom:36px}
+.section-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.section-label.green{color:var(--green)}
+.section-label.blue{color:var(--blue)}
+.section-label.amber{color:var(--amber)}
+.section-label.red{color:var(--red)}
+.section-label.purple{color:var(--purple)}
+.section-label.slate{color:var(--slate)}
+/* Cards in sections */
+.insight-box{background:var(--amber-bg);border:1px solid var(--amber-border);border-left:3px solid var(--amber);border-radius:8px;padding:16px 20px;margin-bottom:16px;font-size:13px;line-height:1.8}
+.insight-box .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--amber);margin-bottom:8px}
+.insight-box p{color:#92400e}
+.pro-tip{background:var(--green-bg);border:1px solid var(--green-border);border-left:3px solid var(--green);border-radius:8px;padding:16px 20px;margin-bottom:16px;font-size:13px;line-height:1.8}
+.pro-tip .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--green);margin-bottom:8px}
+.pro-tip p{color:#14532d}
+.danger-box{background:var(--red-bg);border:1px solid var(--red-border);border-left:3px solid var(--red);border-radius:8px;padding:16px 20px;margin-bottom:16px;font-size:13px;line-height:1.8}
+.danger-box .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--red);margin-bottom:8px}
+.danger-box p{color:#7f1d1d}
+.info-box{background:var(--blue-bg);border:1px solid var(--blue-border);border-left:3px solid var(--blue);border-radius:8px;padding:16px 20px;margin-bottom:16px;font-size:13px;line-height:1.8}
+.info-box .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--blue);margin-bottom:8px}
+.info-box p{color:#1e3a8a}
+/* Prose */
+.prose{font-size:13.5px;line-height:1.9;color:#2d2b26;margin-bottom:16px}
+.prose strong{color:var(--text);font-weight:600}
+/* Diagrams */
+.diagram-wrap{background:var(--slate-bg);border:1px solid var(--slate-border);border-radius:10px;padding:28px;margin-bottom:24px;overflow-x:auto}
+.diagram-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--text-muted);margin-bottom:20px}
+.diagram{font-size:12px;line-height:1.8;white-space:pre;font-family:'Geist Mono',monospace;color:var(--text)}
+/* Trade-off table */
+.table-wrap{overflow-x:auto;margin-bottom:24px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:var(--text);color:#fff;padding:10px 14px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.5px}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:#fafaf8}
+td.good{color:var(--green);font-weight:600}
+td.bad{color:var(--red);font-weight:600}
+td.med{color:var(--amber);font-weight:600}
+/* QA */
+.qa-item{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px}
+.qa-q{background:var(--surface);padding:14px 18px;font-size:13px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.qa-q:hover{background:#fafaf8}
+.qa-chevron{font-size:10px;transition:transform .2s;color:var(--text-muted)}
+.qa-a{display:none;padding:14px 18px;background:#fafaf8;border-top:1px solid var(--border);font-size:13px;line-height:1.8;color:#2d2b26}
+.qa-a.open{display:block}
+/* Domain examples */
+.domain-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+@media(max-width:640px){.domain-grid{grid-template-columns:1fr}}
+.domain-card{border:1px solid var(--border);border-radius:8px;padding:18px}
+.domain-card .domain-tag{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:10px}
+.domain-card.insurance .domain-tag{color:var(--blue)}
+.domain-card.ecomm .domain-tag{color:var(--purple)}
+.domain-card .domain-scenario{font-size:12.5px;line-height:1.8;color:#2d2b26}
+/* Nav */
+.nav-footer{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border)}
+.nav-btn{font-family:inherit;font-size:12px;font-weight:600;padding:10px 20px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:all .15s}
+.nav-btn:hover{background:var(--text);color:#fff;border-color:var(--text)}
+.nav-btn:disabled{opacity:0.3;cursor:default}
+.progress-bar{height:3px;background:var(--border);border-radius:2px;margin:0;overflow:hidden}
+.progress-fill{height:100%;background:var(--text);border-radius:2px;transition:width .3s ease}
+</style>
+</head>
+<body>
+<div class="page-header">
+  <div class="tier-badge">Tier 1 · Core Foundations</div>
+  <h1>Distributed Systems &amp; Java Fundamentals</h1>
+  <p class="subtitle">Senior / Lead Engineer Interview Preparation · 10 Years Experience</p>
+  <div class="meta-row">
+    <div class="meta-item"><strong>30</strong>Core Concepts</div>
+    <div class="meta-item"><strong>2</strong>Domain Examples Each</div>
+    <div class="meta-item"><strong>SVG</strong>Diagrams Included</div>
+    <div class="meta-item"><strong>200+</strong>Follow-up Q&amp;As</div>
+  </div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="prog" style="width:3.3%"></div></div>
+<nav class="toc-bar" id="toc"></nav>
+<main class="content" id="main"></main>
+
+<script>
+const concepts = [
+{
+  id:'cap',
+  num:'01',
+  title:'CAP Theorem',
+  tagline:'Every distributed system can only guarantee two of three properties: Consistency, Availability, and Partition Tolerance. Understanding this forces you to make explicit trade-offs rather than hoping for all three.',
+  sections:[
+    {type:'prose',label:'What It Is',color:'blue',text:`The CAP theorem, proven by Eric Brewer and formalized by Gilbert and Lynch, states that any distributed data store can provide at most two of these three guarantees simultaneously: <strong>Consistency</strong> (every read receives the most recent write or an error), <strong>Availability</strong> (every request receives a non-error response), and <strong>Partition Tolerance</strong> (the system continues to operate despite message loss or delay between nodes).<br><br>The critical insight most engineers miss: <strong>partition tolerance is not optional in real networks</strong>. Network partitions happen — switches fail, cables are cut, AWS availability zones lose connectivity. Therefore, the real trade-off is between C and A when partitions occur.`},
+    {type:'diagram',title:'CAP Triangle — The Real Trade-off',diagram:`
+                    CONSISTENCY
+                        ▲
+                        │
+              CP Systems │  CA Systems
+           (Zookeeper,   │  (Single-node RDBMS,
+            HBase, Redis  │   not distributed)
+            in CP mode)  │
+                         │
+    ─────────────────────┼─────────────────────
+                         │
+              AP Systems │
+           (Cassandra,   │
+            CouchDB,     │
+            DynamoDB)    │
+                         │
+        AVAILABILITY ◄───┘─────────► (Partition Tolerance always required)
+
+    During a PARTITION, you must choose:
+    ┌─────────────────────────────────────────────────┐
+    │  CP: Return an error / block until partition     │
+    │      heals. Consistency preserved.               │
+    │  AP: Return potentially stale data.              │
+    │      Availability preserved.                     │
+    └─────────────────────────────────────────────────┘`},
+    {type:'insight',text:`<strong>The thing most candidates miss:</strong> CAP only applies during a network partition. In normal operation (no partition), you can have both C and A. The theorem tells you what to sacrifice only when things go wrong. Most systems are "AP" or "CP" under partition, not always.`},
+    {type:'table',title:'System Classification',headers:['System','Classification','Why'],rows:[
+      ['Zookeeper / etcd','CP','Returns errors during partition rather than serve stale data. Used for leader election.'],
+      ['Apache Cassandra','AP (tunable)','Serves reads even during partition. Tunable consistency levels (ONE, QUORUM, ALL).'],
+      ['Redis (Cluster)','CP (default)','Stops accepting writes to minority partitions. Can be configured for AP.'],
+      ['MySQL (single node)','CA','No partition tolerance — not distributed. Great for single-region OLTP.'],
+      ['Amazon DynamoDB','AP (eventual)','Eventually consistent by default. Strongly consistent reads available at higher cost.'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Claims System:</strong> A claims processing database chooses CP. During a network partition between data centres, the system returns an error rather than allowing a claim to be approved on stale policy data. A claim approved against a cancelled policy is a financial and legal disaster — consistency is non-negotiable here.`,ecomm:`<strong>E-commerce Product Catalogue:</strong> Product availability and pricing use AP. During a partition, users still see product listings (possibly slightly stale stock counts). A customer seeing "In Stock" for an item that just sold out is a minor inconvenience vs. showing no products at all. Order placement itself, however, is CP.`},
+    {type:'qa',items:[
+      {q:'Can a system switch between CP and AP dynamically?',a:'Yes. Cassandra lets you specify consistency level per-query (ONE=AP, QUORUM=CP). This lets you choose per-operation trade-offs rather than system-wide.'},
+      {q:'What is PACELC and why does it extend CAP?',a:'PACELC adds the E-L (Else: Latency vs Consistency) dimension. Even without partitions, distributed systems trade latency for consistency when replicating. A system with synchronous replication has strong consistency but higher latency. PACELC is a more complete model for everyday operation, not just failure scenarios.'},
+      {q:'Why is "CA" effectively impossible in distributed systems?',a:'Because you cannot prevent network partitions in a distributed system. Saying CA means "I won\'t have partitions" — that\'s not a guarantee you can give across multiple nodes. A single-node database is CA but it\'s not distributed.'},
+    ]}
+  ]
+},
+{
+  id:'consistency',
+  num:'02',
+  title:'Consistency Models',
+  tagline:'Strong consistency is expensive. Eventual consistency is subtle. Knowing the spectrum — and picking the right point — separates architects from developers.',
+  sections:[
+    {type:'prose',label:'The Spectrum',color:'blue',text:`Consistency models define the rules about what values are legal to return from a read operation after a write. They exist on a spectrum from strongest to weakest, with direct trade-offs in latency and availability at every point. <strong>Strong consistency</strong> means after a write completes, all subsequent reads will see that write. This requires coordination (quorums, consensus protocols) and adds latency. <strong>Eventual consistency</strong> means if no new updates are made, eventually all nodes will converge to the same value — but reads may return stale data in the interim.`},
+    {type:'diagram',title:'Consistency Spectrum',diagram:`
+  STRONGEST ◄─────────────────────────────────────────► WEAKEST
+
+  Linearizable    Sequential    Causal     Read-your-    Eventual
+  (Strict)                                 Writes
+
+       │               │            │           │            │
+  After write      Ops appear   Causally    You always   Replicas
+  completes,       in same      related     see your     eventually
+  all reads see    order for    ops are     own writes   converge
+  it globally.     all nodes.   ordered.    (not others)
+
+  Cost:           Cost:        Cost:       Cost:        Cost:
+  Very High       High         Medium      Low          Very Low
+  (consensus)     (ordering)   (vector     (session     (async
+                               clocks)     tokens)      replication)
+
+  Example:        Example:     Example:    Example:     Example:
+  Zookeeper       Kafka        Git         JWT-based    Cassandra
+  etcd            topic        branches    sessions     (ONE level)
+  Spanner         ordering     DynamoDB    Cookie       DNS`},
+    {type:'insight',text:`<strong>The interview trap:</strong> When asked "what consistency do you need?", don't say "strong consistency everywhere." Interviewers want to hear you reason about it per-operation. Shopping cart? Read-your-writes suffices. Bank balance? Linearizable. Product catalogue? Eventual is fine. Demonstrating this nuance signals architectural maturity.`},
+    {type:'table',title:'When to Choose What',headers:['Model','Use When','Real Example','Risk If Wrong'],rows:[
+      ['Linearizable','Correctness is paramount. Data is financial, legal, safety-critical.','Bank balance, distributed lock, leader election','Double-spend, phantom reads, split brain'],
+      ['Sequential','Global order matters but not real-time visibility.','Event sourcing logs, Kafka message ordering','Out-of-order event processing'],
+      ['Causal','Causally related ops must appear in order.','Comment threads, document collaboration','Reply appears before original post'],
+      ['Read-your-writes','User must see their own changes.','Profile update, settings save','User edits profile, refreshes, sees old data'],
+      ['Eventual','High availability, low latency, tolerate brief staleness.','DNS, social media likes, product views','Brief stale data, reconciliation needed'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Policy Updates:</strong> Policy premium recalculation requires linearizable consistency — concurrent updates to the same policy must be serialized. Two agents updating the same policy simultaneously cannot both succeed independently; the final state must reflect a deterministic merge.`,ecomm:`<strong>Shopping Cart:</strong> Cart operations use read-your-writes consistency. If you add an item to cart, you must always see it on the next page load. But other sessions don't need to instantly see the cart update — eventual consistency across sessions is acceptable.`},
+    {type:'qa',items:[
+      {q:'What is the difference between linearizability and serializability?',a:'Linearizability is a property of individual operations — each op appears to execute atomically at a single instant. Serializability is a property of transactions — a set of transactions produces results equivalent to some serial execution. Strict serializability combines both: serializable transactions that are also linearizable. Spanner and CockroachDB offer this.'},
+      {q:'How does Cassandra implement tunable consistency?',a:'Cassandra replication factor (RF) determines how many nodes hold a copy. Consistency level determines how many must acknowledge a read/write. QUORUM = majority of RF nodes. RF=3, QUORUM=2. For strong consistency: write CL + read CL > RF. For eventual: write ONE, read ONE — fastest but stalest.'},
+    ]}
+  ]
+},
+{
+  id:'circuitbreaker',
+  num:'03',
+  title:'Circuit Breaker Pattern',
+  tagline:'A circuit breaker stops cascading failures by failing fast instead of waiting for a slow downstream service to time out — protecting your thread pool and giving downstream services recovery time.',
+  sections:[
+    {type:'prose',label:'Why It Exists',color:'blue',text:`Without a circuit breaker, a slow downstream service causes threads to accumulate waiting for timeouts. With a 30s timeout and 200 TPS, you exhaust a thread pool of 200 in under 4 seconds. The calling service degrades, <em>not because of its own code</em>, but because it's blocked waiting on something it can't control. The circuit breaker pattern adds a proxy around the call that monitors failure rates and <strong>opens</strong> the circuit — causing immediate failures — when a threshold is breached, giving the downstream service breathing room to recover.`},
+    {type:'diagram',title:'Circuit Breaker State Machine',diagram:`
+                    ┌─────────────────────────────┐
+                    │                             │
+                    │         CLOSED              │ ← Normal operation.
+                    │   (requests pass through)   │   Counts failures.
+                    │                             │
+                    └──────────────┬──────────────┘
+                                   │
+                        Failure threshold exceeded
+                        (e.g. 50% failure rate in
+                         10s sliding window)
+                                   │
+                                   ▼
+                    ┌─────────────────────────────┐
+                    │                             │
+                    │          OPEN               │ ← Fails fast.
+                    │   (all requests rejected,   │   No downstream calls.
+                    │    fallback invoked)         │   Waits waitDuration.
+                    │                             │
+                    └──────────────┬──────────────┘
+                                   │
+                           waitDuration elapsed
+                           (e.g. 30 seconds)
+                                   │
+                                   ▼
+                    ┌─────────────────────────────┐
+                    │                             │
+                    │        HALF-OPEN            │ ← Probe phase.
+                    │  (limited calls allowed,    │   Allows N calls through.
+                    │   monitoring results)        │
+                    │                             │
+                    └───────────┬─────────────────┘
+                                │
+                ┌───────────────┴────────────────┐
+                │                                │
+        Calls succeed                     Calls still fail
+        (back to CLOSED)                  (back to OPEN)
+
+  ┌─────────────────────────────────────────────────────────────┐
+  │  Resilience4j Configuration (Spring Boot):                  │
+  │  slidingWindowType = COUNT_BASED                            │
+  │  slidingWindowSize = 10                                     │
+  │  failureRateThreshold = 50  (50% of last 10 calls)         │
+  │  waitDurationInOpenState = 30s                              │
+  │  permittedCallsInHalfOpenState = 3                          │
+  └─────────────────────────────────────────────────────────────┘`},
+    {type:'insight',text:`<strong>The thing most candidates miss:</strong> The circuit breaker solves two different problems. First, it protects the caller's thread pool (fail fast = threads are freed immediately). Second, it gives the downstream service recovery time — if you keep hammering a degraded service, it never recovers. The HALF-OPEN state is the clever part: it uses a small probe to test recovery without risking re-flooding.`},
+    {type:'prose',label:'Fallback Strategies',color:'green',text:`When the circuit is open, you need a fallback. The right fallback depends on the operation:<br><br>
+<strong>Cached response:</strong> Return the last known good value from a local or Redis cache. Works for product catalogue, user profile, exchange rates.<br>
+<strong>Degraded response:</strong> Return a partial response. "Payment gateway temporarily unavailable — we'll confirm your order by email." Works for non-critical paths.<br>
+<strong>Default/static response:</strong> Return a safe default. For recommendation engine failures, return a generic list.<br>
+<strong>Fail fast with clear error:</strong> Return HTTP 503 immediately. For financial operations where stale data is worse than no data.`},
+    {type:'table',title:'Circuit Breaker vs Retry vs Timeout — When to Use Each',headers:['Pattern','Problem It Solves','Use With','Danger Without'],rows:[
+      ['Timeout','Prevents infinite blocking on slow calls','Every HTTP/DB call','Thread exhaustion in 30-60s'],
+      ['Retry','Handles transient failures (network blip)','Idempotent operations only','Retry storm amplifies load on degraded service'],
+      ['Circuit Breaker','Prevents cascading failures, gives recovery time','Any synchronous downstream call','Full system outage from single slow dependency'],
+      ['Bulkhead','Isolates failure blast radius','Multiple downstream dependencies','One slow dependency starves all others'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Policy Service → Underwriting Engine:</strong> Policy creation calls the underwriting engine for risk assessment. CB opens if underwriting is slow. Fallback: queue the policy creation for async processing and return "pending underwriting" state. Customer is not blocked; underwriting processes when recovered.`,ecomm:`<strong>Product Service → Pricing Engine:</strong> Pricing engine is called for every product page view. If pricing engine degrades, CB opens. Fallback returns cached last-known price with a staleness indicator. Users still see products; 30-minute-old prices are acceptable vs. a blank product page.`},
+    {type:'qa',items:[
+      {q:'What is the difference between a circuit breaker and a bulkhead?',a:'Circuit breaker monitors failure rates and stops calling a service when it\'s unhealthy. Bulkhead isolates resources (thread pools, semaphores) so one downstream dependency cannot consume all threads. They\'re complementary: use both. Bulkhead limits concurrent calls; circuit breaker limits calls based on health.'},
+      {q:'How do you prevent retry storms when circuit is half-open?',a:'The permittedCallsInHalfOpenState parameter limits probes. Additionally, combine with exponential backoff on retries, and jitter (randomize retry delays) to prevent thundering herd. Resilience4j\'s @Retry with exponentialBackoff and randomizedWaitFactor handles this.'},
+      {q:'Where should the circuit breaker live — caller or called?',a:'Always in the caller (client-side). The caller owns the decision to fail fast. This is the Ambassador pattern. A shared circuit breaker in an API gateway also works and provides centralized visibility, but caller-side is minimum baseline.'},
+    ]}
+  ]
+},
+{
+  id:'kafka',
+  num:'04',
+  title:'Kafka Architecture & Guarantees',
+  tagline:'Kafka is not a message queue — it is a distributed, durable, replayable event log. Understanding this distinction changes how you design systems around it.',
+  sections:[
+    {type:'prose',label:'Core Architecture',color:'blue',text:`Kafka is built around the concept of a <strong>distributed commit log</strong>. Events are appended to partitions (ordered, immutable sequences). Consumers read at their own pace using offsets. This fundamental model gives Kafka properties traditional message queues don't have: <strong>replay</strong> (re-read from any point), <strong>fan-out</strong> (multiple consumer groups read the same events independently), and <strong>decoupled throughput</strong> (producer throughput is independent of consumer throughput).`},
+    {type:'diagram',title:'Kafka Internals — Topic, Partitions, Consumer Groups',diagram:`
+  PRODUCER                   TOPIC: "order-events"                CONSUMERS
+                                                              
+  Order Service  ─────►  Partition 0 │ msg0 │ msg3 │ msg6 │  ──► Consumer Group A
+                                     └──────────────────────     (Inventory Service)
+                         Partition 1 │ msg1 │ msg4 │ msg7 │  ──► Consumer Group A
+                                     └──────────────────────     (each partition =
+                         Partition 2 │ msg2 │ msg5 │ msg8 │  ──► Consumer Group A
+                                     └──────────────────────      one consumer)
+
+                          Same partitions independently:     ──► Consumer Group B
+                                                                 (Analytics Service)
+                                                             ──► Consumer Group C
+                                                                 (Notification Svc)
+
+  KEY PROPERTIES:
+  ┌──────────────────────────────────────────────────────────────┐
+  │ • Ordering: guaranteed WITHIN a partition, not across        │
+  │ • Parallelism: max parallelism = number of partitions        │
+  │ • Offset: consumer tracks its own position (pull model)      │
+  │ • Retention: events stay for configured period (e.g. 7 days) │
+  │ • Replay: seek to any offset and re-consume                  │
+  └──────────────────────────────────────────────────────────────┘
+
+  PARTITION KEY MATTERS:
+  Same key → always same partition → guaranteed order for that key
+  order-id as key → all events for an order are ordered correctly`},
+    {type:'insight',text:`<strong>The interview insight:</strong> Kafka's pull model is architecturally significant. Consumers pull at their own pace. This means a slow consumer doesn't block producers or other consumers. It also means consumer lag is a visible, measurable metric — and consumer lag is one of the first things you monitor in production.`},
+    {type:'diagram',title:'Exactly-Once Semantics — The Delivery Guarantee Spectrum',diagram:`
+  AT MOST ONCE          AT LEAST ONCE          EXACTLY ONCE
+  
+  Producer sends   →   Producer retries   →   Idempotent producer
+  once, no retry.      on failure.             + Transactional API
+  
+  Message may be       Message may be          Each message processed
+  lost.                processed twice.        exactly once.
+  
+  Use: metrics,        Use: most async         Use: financial events,
+  telemetry,           event processing        inventory updates,
+  fire-and-forget      (with idempotent        deduplication critical
+                       consumers)
+  
+  Consumer Side:
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Auto-commit offset BEFORE processing → at-most-once        │
+  │ Manual commit AFTER processing → at-least-once             │
+  │ Transactional outbox + idempotency key → effectively        │
+  │                                          exactly-once       │
+  └─────────────────────────────────────────────────────────────┘`},
+    {type:'table',title:'Kafka Consumer Failure Handling',headers:['Scenario','Default Behaviour','Correct Approach'],rows:[
+      ['Message processing throws exception','Offset not committed, message reprocessed on next poll','Dead Letter Topic after N retries. Never block partition.'],
+      ['Slow consumer','Lag grows, partition not blocked','Scale consumers (up to partition count). Monitor consumer lag metric.'],
+      ['Poison pill message','Infinite retry loop, partition blocked','Dead Letter Topic. Log, alert, manual inspection.'],
+      ['Rebalance during processing','In-flight messages reprocessed','Ensure processing is idempotent. Use cooperative rebalancing (Kafka 2.4+).'],
+      ['Consumer group restart','Re-reads from last committed offset','Commits must be durable before acking. Use manual commit after processing.'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Event Sourcing:</strong> All policy state changes (created, amended, cancelled, claimed) are published to a Kafka topic partitioned by policy-id. The ordering guarantee within a partition ensures the event stream for any single policy is always in correct chronological order. New downstream services can replay the full history to rebuild their own projections.`,ecomm:`<strong>Order Processing Pipeline:</strong> Order events flow through Kafka: placed → payment-requested → payment-confirmed → inventory-reserved → shipped. Each stage is a consumer group. The inventory service processes payment-confirmed events. If inventory service is down, events accumulate — Kafka's durability means nothing is lost. When service restarts, it continues from its last committed offset.`},
+    {type:'qa',items:[
+      {q:'How do you handle a partition that is blocked by a poison pill message?',a:'Never retry indefinitely inline. After N retries (typically 3), publish the message to a Dead Letter Topic (DLT) — a separate Kafka topic for failed messages. Commit the offset and continue. The DLT is monitored separately; a human or a separate process investigates and potentially replays corrected messages.'},
+      {q:'How many consumers can you have in a consumer group?',a:'Maximum equals the number of partitions. If you have 10 partitions, at most 10 consumers in a group process in parallel. Additional consumers sit idle. To increase parallelism, increase partitions — but partition count can only be increased, never decreased, so plan ahead.'},
+      {q:'What is the difference between Kafka and RabbitMQ architecturally?',a:'Kafka is a durable log — messages stay after consumption, support replay and fan-out. RabbitMQ is a traditional queue — messages are removed after acknowledgement. Kafka excels at event streaming, audit trails, and fan-out. RabbitMQ excels at task queues, complex routing, and lower-latency delivery. Kafka consumers pull; RabbitMQ pushes to consumers.'},
+    ]}
+  ]
+},
+{
+  id:'saga',
+  num:'05',
+  title:'Saga Pattern & Distributed Transactions',
+  tagline:'Two-phase commit is a coordination nightmare in microservices. The Saga pattern achieves consistency through a sequence of local transactions and compensating actions — embracing failure as a first-class concern.',
+  sections:[
+    {type:'prose',label:'Why 2PC Fails in Microservices',color:'red',text:`Two-Phase Commit (2PC) requires a coordinator that locks resources across all participants during the prepare phase. In microservices, this means: <strong>all services must be available simultaneously</strong> (killing availability), the coordinator becomes a single point of failure, and locks held across a network are held for unpredictable durations. Distributed transactions using 2PC have been proven to be an antipattern in microservice architectures — they produce tight coupling, availability reduction, and operational nightmares.`},
+    {type:'diagram',title:'Saga Variants: Choreography vs Orchestration',diagram:`
+  CHOREOGRAPHY SAGA                    ORCHESTRATION SAGA
+  (Event-driven, decentralised)        (Command-driven, centralised)
+
+  Order Svc                            Order Orchestrator
+     │ publishes                            │ commands
+     │ OrderPlaced                          ▼
+     ▼                               ┌─── Payment Svc
+  Payment Svc ──► publishes          │       │ reply: success/fail
+     │ PaymentProcessed              │       ▼
+     ▼                               ├─── Inventory Svc
+  Inventory Svc ──► publishes        │       │ reply: success/fail
+     │ InventoryReserved             │       ▼
+     ▼                               └─── Shipping Svc
+  Shipping Svc                                │ reply: success/fail
+                                              ▼
+  COMPENSATING EVENTS (rollback):       Orchestrator decides
+  InventoryReleased                     next step or rollback
+  PaymentRefunded
+  OrderCancelled
+
+  ┌────────────────────────────────────────────────────────────────┐
+  │ CHOREOGRAPHY: Pros: loose coupling, no SPOF                    │
+  │               Cons: hard to track flow, cyclic dependencies    │
+  │                                                                │
+  │ ORCHESTRATION: Pros: single source of truth, easy to debug     │
+  │                Cons: orchestrator can become monolith          │
+  └────────────────────────────────────────────────────────────────┘`},
+    {type:'insight',text:`<strong>The senior insight:</strong> Saga does not give you isolation — two sagas running concurrently can see each other's intermediate state. This is a key difference from ACID transactions. To handle this, you use countermeasures: semantic locks (flag a record as "in-process"), commutative updates (operations whose order doesn't matter), pessimistic views (assume concurrent saga exists). Knowing this limitation and its mitigation is what separates a senior answer from a junior answer.`},
+    {type:'table',title:'Saga vs 2PC vs Outbox Pattern',headers:['Approach','Consistency','Coupling','Failure Handling','Use When'],rows:[
+      ['2PC','Strong (ACID)','Tight','Coordinator SPOF; blocking','Single DB, monolith. Never in microservices.'],
+      ['Saga (Choreography)','Eventual','Loose','Compensating events','Many services, flexible flow, team autonomy'],
+      ['Saga (Orchestration)','Eventual','Medium','Orchestrator-managed rollback','Complex multi-step flows, need visibility'],
+      ['Outbox Pattern','At-least-once','Loose','Retry on relay failure','Publishing events reliably from DB writes'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Claim Processing:</strong> A claim triggers: validate policy (active?) → reserve claim amount → notify assessor → schedule inspection. Each step is a local transaction. If inspection scheduling fails, compensating transactions release the reserved amount and notify the assessor of cancellation. The policy remains active. No distributed lock was ever held.`,ecomm:`<strong>E-commerce Order Placement:</strong> Place order → debit payment → reserve inventory → create shipment. If inventory reservation fails after payment, a compensating transaction refunds the payment. If shipment creation fails, inventory is released and payment refunded. Each service only owns its own local transaction and publishes the result.`},
+    {type:'qa',items:[
+      {q:'How do you implement idempotency in saga steps?',a:'Each saga step uses an idempotency key (usually the saga ID + step ID). Before processing, check if this key was already processed (using a DB unique constraint or Redis SET NX). If yes, return the previous result. This ensures safe retries — the compensating logic won\'t double-refund or double-reserve.'},
+      {q:'What is the Outbox Pattern and why does it pair with Saga?',a:'The Outbox Pattern solves the dual-write problem: saving to DB and publishing to Kafka in the same transaction. Write the event to an "outbox" table within the same DB transaction as the business data. A separate relay process polls the outbox and publishes to Kafka. This ensures atomicity between DB state and event publication — critical for saga correctness.'},
+    ]}
+  ]
+},
+{
+  id:'redis',
+  num:'06',
+  title:'Redis Architecture & Patterns',
+  tagline:'Redis is not just a cache — it is an in-memory data structure server with rich primitives for distributed computing: locks, rate limiting, pub/sub, streams, and sorted sets.',
+  sections:[
+    {type:'prose',label:'Architecture Fundamentals',color:'blue',text:`Redis is single-threaded for command execution (multi-threaded for I/O in Redis 6+). This single-threaded command execution is what makes Redis operations atomic — no need for locks when executing a single command. All data lives in memory (with optional persistence via RDB snapshots or AOF logs). Redis Cluster shards data across nodes using consistent hashing of key slots (16384 slots). Redis Sentinel provides high availability through monitoring and automatic failover.`},
+    {type:'diagram',title:'Redis Topology Options',diagram:`
+  STANDALONE         SENTINEL              CLUSTER
+  
+  Single node.       Primary + Replicas    Auto-sharded.
+  No HA.             Sentinel monitors     16384 hash slots
+                     and promotes.         distributed across
+  Good for dev,                            master nodes.
+  small workloads.   ┌────────────┐
+                     │  Sentinel  │        node1: slots 0-5460
+  ┌────────┐         │  Sentinel  │        node2: slots 5461-10922
+  │ Redis  │         │  Sentinel  │        node3: slots 10923-16383
+  └────────┘         └─────┬──────┘
+                           │ monitors       Each master has replicas.
+                     ┌─────▼──────┐         Clients hash key to slot,
+                     │  Primary   │         route to correct node.
+                     └─────┬──────┘
+                     ┌─────▼──────┐
+                     │  Replica   │
+                     └────────────┘
+
+  PERSISTENCE OPTIONS:
+  RDB: Periodic snapshots. Fast restart. May lose recent writes.
+  AOF: Log every write. Slower. Near-zero data loss (fsync config).
+  RDB+AOF: Recommended for most production workloads.`},
+    {type:'insight',text:`<strong>Cache invalidation is the second hardest problem in CS (after naming things).</strong> Three strategies: TTL-based expiry (simple, eventual consistency), write-through cache (update cache and DB together — consistent but higher write latency), cache-aside / lazy loading (read from cache, miss → load from DB → populate cache — common pattern, risk of thundering herd on cold start). For critical data, use write-through with a short TTL as insurance.`},
+    {type:'table',title:'Redis Data Structures and Their Use Cases',headers:['Structure','Operations','Use Case','Example'],rows:[
+      ['String','GET, SET, INCR','Simple K/V, counters, rate limiting','Session tokens, page view counts'],
+      ['Hash','HGET, HSET, HMGET','Object storage (fields of an entity)','User profile fields, product attributes'],
+      ['List','LPUSH, RPOP, LRANGE','Queue, recent items','Task queue, recent activity feed'],
+      ['Set','SADD, SMEMBERS, SINTER','Unique membership, intersections','Online users, friend lists'],
+      ['Sorted Set','ZADD, ZRANGE, ZRANGEBYSCORE','Leaderboards, time-series','Top scores, scheduled jobs, rate limiting'],
+      ['Stream','XADD, XREAD, XGROUP','Event log, consumer groups','Kafka-lite for small workloads, audit log'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Rate Limiter:</strong> An insurance API for real-time quote generation limits external partners to 100 requests/minute. Redis INCR + EXPIRE implements a sliding window counter. Key: "partner:{id}:{minute}". If INCR result > 100, return HTTP 429. The atomic INCR prevents race conditions in multi-pod deployments.`,ecomm:`<strong>Flash Sale Inventory:</strong> Flash sale creates a Redis key "flash-inventory:{product-id}" with initial stock count. Each purchase atomically DECRs the counter. If DECR returns < 0, INCR back and reject. Using Redis DECR atomicity prevents overselling across thousands of concurrent requests — far more efficient than DB row locking.`},
+    {type:'qa',items:[
+      {q:'How do you implement a distributed lock with Redis?',a:'Use SET key value NX PX ttl — atomic set-if-not-exists with expiry. Only one process succeeds; others fail and retry with backoff. Redlock (multi-node lock) provides stronger guarantees across 5+ Redis nodes. Always set a TTL to prevent deadlock if the lock holder crashes.'},
+      {q:'What is cache stampede and how do you prevent it?',a:'Cache stampede (thundering herd): cached item expires, 1000 concurrent requests all miss cache simultaneously and all query the DB. Prevention: (1) probabilistic early expiry — refresh cache slightly before TTL expires based on probability, (2) locking — only one thread fetches from DB, others wait, (3) stale-while-revalidate — serve stale data while one thread fetches fresh data in background.'},
+    ]}
+  ]
+},
+{
+  id:'kubernetes',
+  num:'07',
+  title:'Kubernetes Core Concepts',
+  tagline:'Kubernetes is an operating system for distributed applications — it abstracts away the physical infrastructure and provides primitives for deployment, scaling, service discovery, and self-healing.',
+  sections:[
+    {type:'prose',label:'Core Primitives',color:'blue',text:`The fundamental Kubernetes building blocks every senior engineer must know deeply: <strong>Pod</strong> (smallest deployable unit, one or more containers sharing network and storage), <strong>Deployment</strong> (manages ReplicaSets, enables rolling updates and rollbacks), <strong>Service</strong> (stable DNS name and IP for a set of pods, load balancing), <strong>Ingress</strong> (HTTP routing at L7, TLS termination, path-based routing), <strong>ConfigMap/Secret</strong> (externalise configuration), <strong>HPA</strong> (Horizontal Pod Autoscaler — scale pods based on metrics), <strong>PersistentVolume</strong> (stateful storage that outlives pods).`},
+    {type:'diagram',title:'Kubernetes Request Flow — External Traffic to Pod',diagram:`
+  CLIENT
+     │
+     ▼
+  ┌──────────────────────────────────────────────────────────┐
+  │  INGRESS CONTROLLER  (e.g. nginx, Traefik)               │
+  │  • TLS termination                                       │
+  │  • L7 routing: /api → backend-svc, /ui → frontend-svc   │
+  └────────────────────────┬─────────────────────────────────┘
+                           │
+                           ▼
+  ┌──────────────────────────────────────────────────────────┐
+  │  SERVICE (ClusterIP)                                     │
+  │  • Stable DNS: backend-svc.default.svc.cluster.local    │
+  │  • kube-proxy load balances to healthy pods (iptables)  │
+  └────────────────────────┬─────────────────────────────────┘
+                           │
+          ┌────────────────┼────────────────┐
+          ▼                ▼                ▼
+       Pod A            Pod B            Pod C
+    (backend)        (backend)        (backend)
+       │                 │                 │
+    Liveness          Liveness          Liveness
+    Probe ✓           Probe ✓           Probe ✗ → removed from Service
+    
+    Readiness          Readiness
+    Probe ✓            Probe ✓
+
+  ┌──────────────────────────────────────────────────────────┐
+  │  PROBES:                                                 │
+  │  Liveness:  Is the pod alive? Restart if failing.       │
+  │  Readiness: Is the pod ready to serve? Remove from LB.  │
+  │  Startup:   Slow-starting apps. Disables liveness       │
+  │             until app is up.                            │
+  └──────────────────────────────────────────────────────────┘`},
+    {type:'insight',text:`<strong>The key insight on probes:</strong> Liveness and Readiness solve different problems. Liveness answers "is this process dead/stuck?" — restart it. Readiness answers "is this process ready to accept traffic?" — temporarily remove from load balancer. During a rolling deployment, new pods must pass Readiness before old pods are killed. Wrong probe configuration is a top cause of production incidents — failed Liveness restarts a perfectly healthy pod mid-request, failed Readiness misses traffic that the pod could handle.`},
+    {type:'table',title:'Deployment Strategies Compared',headers:['Strategy','How','Downtime','Risk','Use When'],rows:[
+      ['Recreate','Kill all old, start all new','Yes (brief)','No mixed versions','Dev/test only, breaking changes'],
+      ['Rolling Update','Replace pods one by one','No','Brief mixed version state','Standard production deployments'],
+      ['Blue/Green','Run two full environments, switch LB','No','Double resource cost','Zero-risk deployments, instant rollback'],
+      ['Canary','Route small % to new version, observe','No','Partial user impact if bad','Risky features, gradual confidence building'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Claims API:</strong> Claims API uses a Rolling Update with maxSurge=1, maxUnavailable=0. This ensures at least the full replica count is always available during deployment (zero-downtime). Readiness probe checks the /health endpoint which verifies DB and downstream connectivity — pods only receive traffic when fully initialised.`,ecomm:`<strong>E-commerce Black Friday Scaling:</strong> HPA configured with CPU threshold 60% and custom metric (requests-per-second from Prometheus). During Black Friday traffic spike, HPA scales product service from 5 to 40 replicas. Cluster Autoscaler simultaneously adds new EC2 nodes to accommodate pods. PodDisruptionBudget ensures at least 3 replicas remain available during any voluntary disruption.`},
+    {type:'qa',items:[
+      {q:'What is the difference between a Deployment and a StatefulSet?',a:'Deployment pods are interchangeable — any pod can replace any other. Pod names are random. StatefulSet pods have stable network identities (pod-0, pod-1, pod-2) and stable persistent storage. StatefulSets are for stateful applications like databases, Kafka, Elasticsearch — where identity and ordering matter for clustering.'},
+      {q:'How does Kubernetes handle rolling updates safely?',a:'Deployment controller creates a new ReplicaSet, scales it up, and scales down the old ReplicaSet incrementally. maxSurge controls extra pods allowed above desired count. maxUnavailable controls how many pods can be unavailable during update. The new pods must pass Readiness probes before old pods are terminated — this is what prevents traffic to non-ready pods.'},
+    ]}
+  ]
+},
+{
+  id:'apidesign',
+  num:'08',
+  title:'REST API Design Principles',
+  tagline:'A well-designed API is a contract. Breaking that contract breaks every client. Senior engineers design APIs that are versioned, idempotent, consistent, and self-documenting.',
+  sections:[
+    {type:'prose',label:'REST Constraints',color:'blue',text:`REST (Representational State Transfer) is an architectural style, not a protocol. Its constraints: <strong>Stateless</strong> — each request contains all information needed to process it, no server-side session state. <strong>Uniform Interface</strong> — consistent resource naming, HTTP verbs, and status codes. <strong>Layered System</strong> — clients don't know if they're talking to origin server or proxy. <strong>Cache</strong> — responses indicate their cacheability. Many so-called REST APIs are actually CRUD-over-HTTP — they violate these constraints and create coupling problems.`},
+    {type:'diagram',title:'HTTP Verb Semantics & Idempotency',diagram:`
+  VERB      SEMANTICS           IDEMPOTENT?   SAFE?   USE FOR
+  ─────────────────────────────────────────────────────────────
+  GET       Retrieve resource      YES          YES   Read data
+  HEAD      Get headers only       YES          YES   Existence check
+  POST      Create / action        NO           NO    Create, actions
+  PUT       Replace resource       YES          NO    Full update
+  PATCH     Partial update         NO*          NO    Partial update
+  DELETE    Remove resource        YES          NO    Delete
+
+  * PATCH idempotency depends on implementation
+
+  RESOURCE NAMING CONVENTIONS:
+  ┌─────────────────────────────────────────────────────────────┐
+  │  Collections:  GET  /policies                               │
+  │  Resource:     GET  /policies/{id}                          │
+  │  Create:       POST /policies                               │
+  │  Replace:      PUT  /policies/{id}                          │
+  │  Update:       PATCH /policies/{id}                         │
+  │  Delete:       DELETE /policies/{id}                        │
+  │  Sub-resource: GET  /policies/{id}/claims                   │
+  │  Action:       POST /policies/{id}/renew  (not a CRUD op)   │
+  └─────────────────────────────────────────────────────────────┘
+
+  STATUS CODES — USE CORRECTLY:
+  200 OK        201 Created       204 No Content
+  400 Bad Req   401 Unauthorized  403 Forbidden
+  404 Not Found 409 Conflict      422 Unprocessable
+  429 Too Many  500 Server Error  503 Unavailable`},
+    {type:'insight',text:`<strong>Versioning strategy matters long-term:</strong> URI versioning (/v1/policies) is visible and easy to route but pollutes URLs. Header versioning (Accept: application/vnd.api+json;version=2) is clean but harder to test in browsers. Most teams use URI versioning in practice for its discoverability. The critical rule: never break v1 consumers when releasing v2. Run versions concurrently with a deprecation timeline.`},
+    {type:'table',title:'API Design Decisions — Options & Trade-offs',headers:['Decision','Option A','Option B','Recommendation'],rows:[
+      ['Versioning','URI: /v1/resource','Header: Accept: version=2','URI versioning for discoverability; header for semantic APIs'],
+      ['Pagination','Offset-based: ?page=2&size=20','Cursor-based: ?after=eyJpZCI6M...','Cursor for large datasets; offset for small predictable sets'],
+      ['Error Format','HTTP status only','Structured error body (code, message, details)','Always include structured error body — status alone is not enough'],
+      ['Filtering','Query params: ?status=active','POST with filter body','Query params for simple; POST filter body for complex queries'],
+      ['Auth','API Key in header','OAuth2 Bearer token','OAuth2 for user-context; API key for service-to-service'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Claims API:</strong> POST /claims creates a claim (not idempotent by default — same call twice creates two claims). Add Idempotency-Key header: client generates a UUID, server uses it to deduplicate. Second call with same key returns the original response. Critical for payment and claim submission where network retries are common.`,ecomm:`<strong>Order API:</strong> GET /orders?status=pending&page=1&size=20 for pagination. Cursor-based: GET /orders?after=order-789&size=20 for real-time feeds. The cursor is opaque to the client (base64 encoded position). This allows DB to add indexes or change internal structure without breaking the pagination API contract.`},
+    {type:'qa',items:[
+      {q:'What is HATEOAS and when is it worth implementing?',a:'HATEOAS (Hypermedia As The Engine Of Application State) means responses include links to related actions — a GET /orders response includes a "cancel" link if the order is cancellable. Clients don\'t hardcode state machine logic; they follow links. Worth implementing for public APIs with complex state machines. Overhead is high for internal APIs — teams typically skip it in practice.'},
+      {q:'How do you handle breaking vs non-breaking API changes?',a:'Non-breaking: add optional fields, add new endpoints, relax validation, new optional headers. Breaking: remove fields, change types, change semantics of existing fields, make optional fields required. For breaking changes: release a new version, run both concurrently, announce deprecation timeline (typically 6-12 months for external APIs), sunset old version after migration deadline.'},
+    ]}
+  ]
+},
+{
+  id:'jvm',
+  num:'09',
+  title:'JVM Memory Model & GC',
+  tagline:'Java developers who understand the JVM can diagnose memory leaks, tune GC pause times, and choose the right garbage collector — these skills directly translate to production reliability.',
+  sections:[
+    {type:'prose',label:'JVM Memory Layout',color:'blue',text:`The JVM memory model divides memory into regions with distinct purposes and GC behaviours. <strong>Heap</strong>: where all objects live, divided into Young Generation (Eden, S0, S1) and Old Generation (Tenured). <strong>Metaspace</strong> (formerly PermGen): stores class metadata, unlimited by default (grows with class loading). <strong>Stack</strong>: per-thread, stores method call frames and local variables. <strong>Off-heap/Direct</strong>: used by NIO, Netty, some caches — bypasses GC entirely. Understanding which region is under pressure determines your debugging approach.`},
+    {type:'diagram',title:'JVM Heap Layout & Object Lifecycle',diagram:`
+  ┌─────────────────────────────────────────────────────────────┐
+  │                        HEAP                                 │
+  │  ┌─────────────────────────────┐  ┌──────────────────────┐  │
+  │  │     YOUNG GENERATION        │  │   OLD GENERATION     │  │
+  │  │  ┌────────┐ ┌────┐ ┌────┐  │  │  (Tenured Space)     │  │
+  │  │  │  Eden  │ │ S0 │ │ S1 │  │  │                      │  │
+  │  │  └────────┘ └────┘ └────┘  │  │  Long-lived objects  │  │
+  │  │  New objects allocated here │  │  that survived many  │  │
+  │  │  Minor GC: fast (ms)        │  │  Minor GCs           │  │
+  │  └─────────────────────────────┘  │  Major/Full GC:      │  │
+  │                                    │  slower, STW pause   │  │
+  │                                    └──────────────────────┘  │
+  └─────────────────────────────────────────────────────────────┘
+
+  OBJECT LIFECYCLE:
+  1. Object allocated in Eden
+  2. Minor GC: surviving objects copied to S0
+  3. Next Minor GC: surviving objects copied S0→S1
+  4. After N GCs (tenuring threshold): promoted to Old Gen
+  5. Old Gen fills up → Major GC triggered
+
+  GC ALGORITHM CHOICES:
+  ┌────────────────────────────────────────────────────────┐
+  │  G1GC (default Java 9+): Balanced throughput & pause  │
+  │  ZGC (Java 15+): Sub-ms pauses, large heaps           │
+  │  Shenandoah: Low-pause, concurrent compaction         │
+  │  SerialGC: Single thread, minimal memory overhead     │
+  │  ParallelGC: High throughput, tolerates longer pauses │
+  └────────────────────────────────────────────────────────┘`},
+    {type:'insight',text:`<strong>Memory leak diagnosis — the mental model:</strong> If heap grows continuously despite GC running, objects are being retained unintentionally. Common causes in Java: static collections growing without bound, listeners/callbacks not deregistered, ThreadLocal not cleaned up, inner classes holding outer class reference, unclosed streams/connections. Diagnosis flow: jstat (confirm heap growth) → jmap heap dump → Eclipse MAT (find retention paths). Look for "biggest consumers" in MAT's Dominator Tree.`},
+    {type:'table',title:'GC Collector Comparison',headers:['Collector','Pause Time','Throughput','Heap Size','Best For'],rows:[
+      ['SerialGC','Long (single-thread)','Low','< 100MB','Embedded, tiny services'],
+      ['ParallelGC','Medium','High','Any','Batch jobs, background processing'],
+      ['G1GC (default)','Predictable (< 200ms)','High','4GB-32GB','General purpose, microservices'],
+      ['ZGC','< 1ms concurrent','Good','Any (TB scale)','Latency-sensitive, large heaps'],
+      ['Shenandoah','< 10ms concurrent','Good','Any','Low-latency without large heap requirement'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Batch Processing:</strong> Nightly batch job processes 10M policy records. ParallelGC chosen: throughput matters over pause time for batch. Heap set to 16GB (-Xmx16g). GC tuning: -XX:+UseParallelGC -XX:ParallelGCThreads=8. jstat -gcutil monitored hourly to confirm no heap drift between batch runs.`,ecomm:`<strong>E-commerce Real-time Pricing API:</strong> API must respond in < 50ms P99. G1GC with MaxGCPauseMillis=100 initially. After profiling, migrated to ZGC (Java 17) — GC pauses dropped from 50-100ms spikes to < 5ms. Added -XX:+ZUncommit to return unused memory to OS during low-traffic periods.`},
+    {type:'qa',items:[
+      {q:'What is a Stop-the-World pause and why does it matter?',a:'Stop-the-World (STW) means all application threads are paused while GC runs. During STW, your service handles zero requests. For a 200ms STW pause at peak traffic, that is 200ms of complete unavailability. Modern collectors (ZGC, Shenandoah) minimise STW to under 1ms by doing most work concurrently. Old collectors (ParallelGC) have STW pauses proportional to heap size and live object count.'},
+      {q:'How do you diagnose if Metaspace is causing issues?',a:'Metaspace grows when classes are loaded. In applications with dynamic class generation (Spring AOP proxies, Groovy, CGLIB) or classloader leaks, Metaspace grows unboundedly. Symptoms: OutOfMemoryError: Metaspace. Diagnosis: jcmd <pid> VM.classloaders and jmap -histo. Set -XX:MaxMetaspaceSize to cap and force OOME rather than unbounded growth.'},
+    ]}
+  ]
+},
+{
+  id:'dbscaling',
+  num:'10',
+  title:'Database Scaling Patterns',
+  tagline:'Database scaling is an ordered escalation ladder — each step adds complexity and operational cost. Jumping to sharding when connection pooling would suffice is a career-limiting architectural decision.',
+  sections:[
+    {type:'prose',label:'The Escalation Ladder',color:'blue',text:`Database scaling must be approached as an escalation ladder — exhaust simpler options before climbing to more complex ones. The order matters because each level adds significant operational complexity. Most production systems never need to climb past Level 4. Jumping straight to sharding is a red flag that signals a lack of production experience.`},
+    {type:'diagram',title:'Database Scaling Escalation Ladder',diagram:`
+  LEVEL 1: Query Optimisation
+  ├── EXPLAIN ANALYZE every slow query
+  ├── Add missing indexes (composite, covering)
+  ├── Eliminate N+1 queries (eager loading)
+  └── Query rewriting (avoid SELECT *, use pagination)
+  Cost: Low. Impact: Often 10-100x improvement. Try first.
+  
+       │ still not enough?
+       ▼
+  
+  LEVEL 2: Connection Pooling
+  ├── HikariCP: maxPoolSize = (cores * 2) + disk_spindles
+  ├── PgBouncer (PostgreSQL) for thousands of connections
+  └── Prevents connection exhaustion under load
+  Cost: Low. Impact: Massive for high-concurrency apps.
+  
+       │ still not enough?
+       ▼
+  
+  LEVEL 3: Read Replicas
+  ├── Route read-heavy queries to replicas
+  ├── Accept eventual consistency (replication lag: ms to seconds)
+  ├── Write goes to primary, reads from replicas
+  └── Scale reads horizontally (add more replicas)
+  Cost: Medium. Impact: High for read-heavy workloads (80%+ reads).
+  
+       │ still not enough?
+       ▼
+  
+  LEVEL 4: Caching Layer (Redis)
+  ├── Cache frequent reads (user profiles, product catalogue)
+  ├── TTL-based expiry or explicit invalidation
+  └── Reduces DB load by 80-95% for cacheable data
+  Cost: Medium. Impact: High. Adds cache invalidation complexity.
+  
+       │ still not enough?
+       ▼
+  
+  LEVEL 5: Vertical Scaling
+  ├── More CPU, RAM, faster disk
+  └── Buys time, not a long-term solution.
+  
+       │ still not enough?
+       ▼
+  
+  LEVEL 6: Partitioning (Sharding)
+  ├── Range-based: partition by date, ID range
+  ├── Hash-based: partition by hash(user_id) % N
+  └── Directory-based: lookup table maps key → shard
+  Cost: Very High. Breaks joins, transactions.
+  Use only when all other options are exhausted.`},
+    {type:'insight',text:`<strong>The interview signal:</strong> Experienced engineers start from Level 1 and justify each step up. They know that sharding breaks cross-shard joins, makes distributed transactions impossible, and creates rebalancing nightmares. They also know that 90% of database performance problems are solved at Levels 1-2, not Levels 5-6.`},
+    {type:'table',title:'Sharding Strategies Compared',headers:['Strategy','How','Hotspot Risk','Rebalancing','Use When'],rows:[
+      ['Range-based','Shard by value range (dates, ID ranges)','High (recent data hot)','Easy (add new range shard)','Time-series, archive workloads'],
+      ['Hash-based','Shard by hash(key) % N','Low (even distribution)','Hard (rehash everything)','User data, general purpose'],
+      ['Directory-based','Lookup table: key → shard ID','Low','Medium (update directory)','Non-uniform distributions, migration scenarios'],
+      ['Consistent Hashing','Hash ring; add/remove nodes with minimal remapping','Low','Easy (minimal data moved)','Distributed caches, CDN routing'],
+    ]},
+    {type:'domain',ins:`<strong>Insurance Policy Database:</strong> 50M policies, mostly reads (agents querying policies). Level 1 (indexing by policy_number, customer_id) reduced query time from 800ms to 12ms. Level 3 (read replicas) handles reporting workload. Writes (policy updates) on primary. Never reached Level 6 — appropriate for this workload.`,ecomm:`<strong>E-commerce Orders:</strong> 500M orders/year. Reached Level 6. Sharded by hash(user_id) — user's orders always in same shard. Downside: "show all orders by status" requires scatter-gather across all shards. Mitigation: maintain a secondary index (Elasticsearch) for cross-shard search queries.`},
+    {type:'qa',items:[
+      {q:'What is the N+1 query problem and how do you solve it?',a:'N+1: you query for N records, then execute 1 additional query per record (e.g., fetch 100 orders, then fetch each order\'s customer separately = 101 queries). Solution: JOIN in a single query, or use ORM eager loading (JPA: @EntityGraph, fetch join). Detection: Hibernate show_sql=true in dev, or query count monitoring with Micrometer in production.'},
+      {q:'How does HikariCP determine the optimal pool size?',a:'The Hikari formula: pool_size = (core_count * 2) + effective_spindle_count. For an 8-core server with 2 SSDs: (8*2)+2 = 18. Counter-intuitive: more connections than cores causes context switching overhead. Connections waiting on I/O release the CPU anyway — the formula accounts for this. Too many connections is worse than too few in high-concurrency scenarios.'},
+    ]}
+  ]
+}
+];
+
+// Build TOC and pages
+const toc = document.getElementById('toc');
+const main = document.getElementById('main');
+
+concepts.forEach((c,i)=>{
+  const btn = document.createElement('button');
+  btn.className = 'toc-btn' + (i===0?' active':'');
+  btn.textContent = c.num+' '+c.title;
+  btn.onclick = ()=>showConcept(i);
+  toc.appendChild(btn);
+
+  const div = document.createElement('div');
+  div.className = 'concept'+(i===0?' active':'');
+  div.id = 'concept-'+i;
+  div.innerHTML = buildConcept(c);
+  main.appendChild(div);
+});
+
+function buildConcept(c){
+  let h = `<div class="concept-header">
+    <div class="concept-number">Concept ${c.num} of 30</div>
+    <h2 class="concept-title">${c.title}</h2>
+    <p class="concept-tagline">${c.tagline}</p>
+  </div>`;
+  c.sections.forEach(s=>{
+    if(s.type==='prose'){
+      h+=`<div class="section"><div class="section-label ${s.color}">${s.label}</div><p class="prose">${s.text}</p></div>`;
+    } else if(s.type==='diagram'){
+      h+=`<div class="diagram-wrap"><div class="diagram-title">${s.title}</div><div class="diagram">${s.diagram}</div></div>`;
+    } else if(s.type==='insight'){
+      h+=`<div class="insight-box"><div class="label">💡 Senior Insight</div><p>${s.text}</p></div>`;
+    } else if(s.type==='pro-tip'){
+      h+=`<div class="pro-tip"><div class="label">✓ Pro Tip</div><p>${s.text}</p></div>`;
+    } else if(s.type==='danger'){
+      h+=`<div class="danger-box"><div class="label">⚠ Watch Out</div><p>${s.text}</p></div>`;
+    } else if(s.type==='table'){
+      let rows = s.rows.map(r=>'<tr>'+r.map(cell=>`<td>${cell}</td>`).join('')+'</tr>').join('');
+      let heads = s.headers.map(h=>`<th>${h}</th>`).join('');
+      h+=`<div class="section"><div class="section-label amber">${s.title}</div><div class="table-wrap"><table><thead><tr>${heads}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    } else if(s.type==='domain'){
+      h+=`<div class="section"><div class="section-label purple">Domain Examples</div><div class="domain-grid">
+        <div class="domain-card insurance"><div class="domain-tag">🏢 Insurance</div><div class="domain-scenario">${s.ins}</div></div>
+        <div class="domain-card ecomm"><div class="domain-tag">🛒 E-commerce</div><div class="domain-scenario">${s.ecomm}</div></div>
+      </div></div>`;
+    } else if(s.type==='qa'){
+      let items = s.items.map((item,i)=>`
+        <div class="qa-item">
+          <div class="qa-q" onclick="toggleQA(this)"><span>${item.q}</span><span class="qa-chevron">▼</span></div>
+          <div class="qa-a">${item.a}</div>
+        </div>`).join('');
+      h+=`<div class="section"><div class="section-label green">Follow-up Interview Q&amp;A</div>${items}</div>`;
+    }
+  });
+  h+=`<div class="nav-footer">
+    <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">← Previous</button>
+    <span style="font-size:11px;color:var(--text-muted);align-self:center">Use nav or top tabs to explore</span>
+    <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next →</button>
+  </div>`;
+  return h;
+}
+
+let current = 0;
+function showConcept(i){
+  document.querySelectorAll('.concept').forEach((el,idx)=>{
+    el.classList.toggle('active', idx===i);
+  });
+  document.querySelectorAll('.toc-btn').forEach((el,idx)=>{
+    el.classList.toggle('active', idx===i);
+  });
+  current = i;
+  document.getElementById('prog').style.width = ((i+1)/concepts.length*100)+'%';
+  window.scrollTo(0,0);
+}
+function navigate(dir){
+  const next = current + dir;
+  if(next >= 0 && next < concepts.length) showConcept(next);
+}
+function toggleQA(el){
+  const ans = el.nextElementSibling;
+  ans.classList.toggle('open');
+  el.querySelector('.qa-chevron').style.transform = ans.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+</script>
+</body>
+</html>

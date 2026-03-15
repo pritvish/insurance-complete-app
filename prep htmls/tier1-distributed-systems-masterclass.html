@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tier-1 Distributed Systems Masterclass</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #fafaf9;
+            --bg-secondary: #f5f5f4;
+            --bg-tertiary: #efefed;
+            --text-primary: #1c1917;
+            --text-secondary: #78716f;
+            --text-tertiary: #a8a39f;
+            --border: #e7e5e4;
+            --accent-primary: #2563eb;
+            --accent-secondary: #7c3aed;
+            --accent-tertiary: #ec4899;
+            --success: #16a34a;
+            --warning: #ea580c;
+            --info: #0891b2;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(250, 250, 249, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Topic Grid */
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-top: 32px;
+        }
+
+        .topic-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .topic-card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+
+        .topic-card.hidden {
+            display: none;
+        }
+
+        .topic-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .topic-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .topic-category {
+            display: inline-block;
+            padding: 4px 10px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--accent-primary);
+            letter-spacing: 0.5px;
+        }
+
+        .quick-ref {
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .topic-card.expanded .content {
+            max-height: 2000px;
+        }
+
+        .expand-btn {
+            background: none;
+            border: none;
+            color: var(--accent-primary);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .topic-card.expanded .expand-btn {
+            transform: rotate(180deg);
+        }
+
+        .section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--accent-primary);
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .section-content {
+            font-size: 13px;
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        .example {
+            margin: 12px 0;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent-primary);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .example-label {
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .insight {
+            margin: 12px 0;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+            border-left: 3px solid var(--accent-tertiary);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .insight-label {
+            font-weight: 700;
+            color: var(--accent-tertiary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .followup {
+            margin: 12px 0;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-left: 3px solid var(--info);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .followup-label {
+            font-weight: 700;
+            color: var(--info);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        code {
+            background: var(--bg-secondary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--accent-secondary);
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        em {
+            color: var(--accent-secondary);
+            font-style: italic;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 16px 0;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 64px 24px;
+            color: var(--text-secondary);
+        }
+
+        .no-results-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+            }
+
+            .search-box {
+                max-width: 100%;
+            }
+
+            .topics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .topic-card {
+            animation: slideIn 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <h1>Tier-1 Distributed Systems Masterclass</h1>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search topics... (e.g., 'CAP', 'Consensus', 'Kafka')">
+                </div>
+            </div>
+            <div class="stats">
+                <div class="stat">
+                    <span>Total Topics:</span>
+                    <span class="stat-value" id="totalTopics">0</span>
+                </div>
+                <div class="stat">
+                    <span>Level:</span>
+                    <span class="stat-value">Intermediate → Senior</span>
+                </div>
+                <div class="stat">
+                    <span>Examples:</span>
+                    <span class="stat-value">Insurance + E-commerce</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="topics-grid" id="topicsGrid"></div>
+        <div id="noResults" class="no-results" style="display: none;">
+            <div class="no-results-icon">🔍</div>
+            <p>No topics match your search. Try different keywords.</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>Designed for senior-level interview preparation. Last updated: March 2026</p>
+    </footer>
+
+    <script>
+        const topics = [
+            {
+                id: 1,
+                title: "CAP Theorem",
+                category: "Distributed Systems",
+                quickRef: "Consistency, Availability, Partition tolerance. Pick 2 of 3 in distributed systems.",
+                deepDive: "The CAP theorem states that a distributed system can guarantee at most two of three properties: Consistency (all nodes see the same data simultaneously), Availability (system remains operational), and Partition tolerance (system survives network splits). This isn't a hard law but a practical framework for design decisions. Most real systems choose AP (eventual consistency) or CP (strong consistency with availability loss).",
+                insuranceExample: "Claims processing system: When network partitions occur between regional data centers, you can't have both strong consistency and instant availability. Instagram's insurance partner chose AP—claims might show inconsistent status momentarily, but the system stays online. They reconcile within minutes using eventual consistency. If they chose CP instead, customers couldn't file claims during network issues.",
+                ecommerceExample: "Payment service: Stripe chooses CP (consistency over availability). During payment processing, if there's a network partition, the system locks to prevent double-charging. Customers get an error rather than risking inconsistent payment states. This temporary unavailability is acceptable because the cost of inconsistent payments is catastrophic.",
+                advancedInsights: "⚠️ CAP is often misunderstood: (1) Partition tolerance isn't optional—you must handle partitions. You're really choosing between consistency and availability during partitions. (2) In the absence of partitions, you can have all three. (3) 'Consistency' here means linearizability, not ACID. (4) Modern systems often use tunable consistency (e.g., Cassandra) rather than binary choices.",
+                followupQuestions: [
+                    "How would you redesign the insurance claims system if you needed strong consistency? What would users experience?",
+                    "When would you choose CP over AP? Give a concrete example beyond payments.",
+                    "What's the difference between CAP consistency and database ACID consistency?"
+                ]
+            },
+            {
+                id: 2,
+                title: "Eventual Consistency",
+                category: "Consistency Models",
+                quickRef: "System converges to consistent state after writes stop. Tolerates temporary divergence.",
+                deepDive: "Eventual consistency is a consistency model where replicas may diverge temporarily after a write, but will converge to the same state given no new writes. It enables high availability and partition tolerance but requires clients to handle temporary inconsistencies. Implementation details matter: how do you detect divergence (vector clocks, tombstones)? How do you resolve conflicts (CRDTs, last-write-wins)? What's your reconciliation strategy (read repair, anti-entropy)?",
+                insuranceExample: "Policy database replication: When an agent updates a policy, it's written to the primary data center and replicated asynchronously to 5 regional replicas. For 50-200ms, different replicas might show different policy versions. This is acceptable because: (1) policy reads are rare compared to writes, (2) conflicts are resolved by policy ID + timestamp, (3) the system detects divergence via version vectors and auto-reconciles within seconds. If an agent reloads the page, they might see a slightly stale policy version, but the system never loses data.",
+                ecommerceExample: "Inventory management: Amazon's warehouse system uses eventual consistency across regions. When you buy an item, local inventory is decremented immediately and replicated asynchronously. Briefly, a warehouse in London might show stock=1 while Tokyo shows stock=2. This is resolved in seconds via anti-entropy jobs that reconcile inventory from the source of truth (fulfillment center), but the system can serve customers instantly without waiting for global synchronization.",
+                advancedInsights: "⚠️ Gotchas: (1) 'Eventual' can mean hours if you're not careful—define your RTO/RPO explicitly. (2) Conflict resolution is non-trivial; last-write-wins loses data silently. (3) Users may perceive inconsistency (e.g., sold-out item reappears). (4) Debugging is hard; logs from different regions diverge. (5) Achieving true eventual consistency at scale requires distributed tracing and version vectors, not just timestamps.",
+                followupQuestions: [
+                    "How would you detect that two replicas have diverged in an eventually consistent system?",
+                    "What's the difference between eventual consistency and strong consistency? When is eventual consistency too weak?",
+                    "If policy conflicts occur, how would you resolve them? What data do you lose?"
+                ]
+            },
+            {
+                id: 3,
+                title: "Consensus & Raft",
+                category: "Distributed Coordination",
+                quickRef: "Raft: leader-based consensus. Logs replicated across majority. Tolerates F failures with 2F+1 nodes.",
+                deepDive: "Raft is a consensus algorithm where a single leader replicates a log of commands to followers. A follower becomes a candidate if the leader dies; candidates compete for votes from a quorum (majority). Once a candidate wins, it's the new leader. Log entries are committed once replicated to a majority, ensuring durability even after leader failure. Key insight: Raft separates leader election from log replication, making it easier to understand than Paxos. Terms prevent split-brain (two leaders can't exist simultaneously in different terms). Log matching property ensures followers can catch up even after cascading failures.",
+                insuranceExample: "Policy State Machine: Insurtech platform uses Raft (via etcd or Consul) to manage policy version consensus. When a policy is underwritten, the primary node appends ('POLICY_CREATED', policyID, terms) to the Raft log. This entry is replicated to 4 follower nodes; once 3 out of 5 agree, it's committed and becomes immutable. If the primary dies mid-replication, followers guarantee no committed log is lost. The new elected leader continues from where the old leader left off. This prevents scenarios where a policy is approved on the primary but lost when it crashes.",
+                ecommerceExample: "Order routing service: DoorDash uses Raft to elect a master coordinator responsible for order assignment. When an order arrives, the master appends it to the Raft log. If the master crashes after recording 100 orders but before assigning them, the next elected leader reads the same 100 orders from the log and continues assignment. Without Raft, orders might be lost or assigned twice. Raft guarantees exactly-once semantics for order entry.",
+                advancedInsights: "⚠️ Common misconceptions: (1) Raft doesn't guarantee application-level consistency—the state machine must be deterministic and single-threaded. (2) Log replication is for durability, not distribution. (3) Quorum = majority, which means 3 nodes survive 1 failure, 5 nodes survive 2 failures. (4) Leader can still fail between committing and applying; followers must deduplicate on recovery. (5) Network partitions create zombie leaders; use heartbeats + randomized election timeouts to detect.",
+                followupQuestions: [
+                    "If a Raft leader crashes after committing but before applying a log entry, what happens when it restarts?",
+                    "Why do you need a quorum in Raft? Why not replicate to all followers?",
+                    "How does Raft recover from a network partition where old leader is isolated on one side?"
+                ]
+            },
+            {
+                id: 4,
+                title: "Distributed Transactions & SAGA Pattern",
+                category: "Transactions",
+                quickRef: "SAGA: long-running transactions split into microservice steps with compensating actions for rollback.",
+                deepDive: "Traditional 2PC (Two-Phase Commit) doesn't scale in microservices (blocking locks, coordination overhead). SAGA pattern replaces it with a sequence of local transactions, each with a compensating action. Two flavors: (1) Orchestration (central coordinator calls services), (2) Choreography (services emit events, others react). Choreography is decoupled but hard to reason about; orchestration is explicit but adds a coordinator. Key challenge: idempotency—retries must not cause duplicate side effects. Solution: idempotency keys (unique IDs that services persist and check before executing).",
+                insuranceExample: "Premium payment SAGA: (1) Debit customer account (local transaction), (2) Create claim reserve (local transaction), (3) Update policy status (local transaction). If step 2 fails, compensating action is to credit back the debit. Orchestrator Service manages this sequence. For idempotency, each step is tagged with paymentID='uuid'. If the network loses the response after step 1 completes, a retry with the same paymentID will see 'already paid' and skip step 1, moving directly to step 2. Without idempotency, retries cause duplicate debits or claims.",
+                ecommerceExample: "Order fulfillment SAGA: (1) Charge payment (Payment Service), (2) Reserve inventory (Inventory Service), (3) Create shipment (Shipping Service). If inventory is exhausted (step 2 fails), compensating action is to refund the payment. Each action is tagged with orderID='uuid'. If charging fails mid-response, the orchestrator doesn't know; a retry with the same orderID sees the payment was already charged and skips charging, moving to inventory reservation.",
+                advancedInsights: "⚠️ SAGA gotchas: (1) Non-atomic reads—a step can see inconsistent data between invocations. (2) Compensating actions can fail; you need monitoring to alert on hanging sagas. (3) Choreography creates implicit contracts—changing one service breaks others silently. (4) Orchestration is a single point of failure—must be distributed/replicated. (5) Idempotency is hard—you need persistent storage of request IDs and outcomes. (6) Saga recovery requires deterministic log replay and side-effect replay.",
+                followupQuestions: [
+                    "What's the difference between orchestration and choreography SAGAs? Which would you use and why?",
+                    "How do you ensure idempotency in a SAGA? What happens if a step is partially executed and crashes?",
+                    "If a compensating action fails (e.g., refund fails), what's your recovery strategy?"
+                ]
+            },
+            {
+                id: 5,
+                title: "Idempotency & Idempotency Keys",
+                category: "API Design",
+                quickRef: "Idempotency: same request has same effect if retried. Idempotency keys: unique IDs per request for deduplication.",
+                deepDive: "Idempotency ensures a request can be safely retried without unintended side effects. In distributed systems, clients can't distinguish between 'request failed' and 'request succeeded but response was lost,' forcing them to retry. Idempotent operations (GET, DELETE) are safe to retry; non-idempotent operations (POST, PUT) need explicit handling. Idempotency keys solve this: client attaches a UUID to each request; server stores the key + response; retries with the same key return the cached response without re-executing the operation. This shifts duplicate detection from application code to a generic mechanism.",
+                insuranceExample: "Claim submission: Client generates claimID='550e8400-e29b-41d4-a716-446655440000'. POST /claims with Idempotency-Key=claimID. Server stores (claimID, response) in Redis (10-minute TTL). If the client retries due to network timeout, it resends the same Idempotency-Key. Server checks Redis, finds the key, returns the cached response without re-creating the claim. Without this, retries create duplicate claims, confusing both the system and customers.",
+                ecommerceExample: "Payment authorization: Mobile app generates transactionID=uuid. Calls POST /payments with Idempotency-Key=transactionID. Payment gateway stores (transactionID, receipt) in DynamoDB. If the phone loses network mid-response, the retry with the same Idempotency-Key returns the cached receipt. The user is charged once, not multiple times. The charge is idempotent from the user's perspective.",
+                advancedInsights: "⚠️ Implementation nuances: (1) Idempotency keys must be unique per client intent, not per request—same intent, same key. (2) Storage must survive request duration + retry window; use persistent cache (Redis/Memcached with RDB snapshots) or database. (3) What if the idempotency store is down? Risk data loss or re-execution. (4) Some operations are naturally idempotent (updates with PUT using full resource); others need explicit keys (POST). (5) Distributed idempotency (across regions) requires global agreement on stored responses; eventual consistency can cause re-execution on failover.",
+                followupQuestions: [
+                    "If the idempotency key store crashes, what happens to in-flight requests? What's your recovery?",
+                    "Why not use database transactions instead of idempotency keys?",
+                    "How long should you keep idempotency key responses? What's the trade-off?"
+                ]
+            },
+            {
+                id: 6,
+                title: "Circuit Breaker Pattern",
+                category: "Resilience Patterns",
+                quickRef: "State machine (Closed → Open → Half-Open) that stops calling failing services and allows recovery.",
+                deepDive: "Circuit breaker prevents cascading failures by fast-failing instead of waiting for timeouts. States: (1) Closed—normal operation, requests pass through; (2) Open—requests fail immediately, no calls made; (3) Half-Open—limited test requests allowed to check if service recovered. Transitions: consecutive failures → Open (after threshold), timeout in Open → Half-Open, success in Half-Open → Closed. Resilience4j (Java) implements this with configurable thresholds (e.g., open after 5 consecutive failures or 50% failure rate). Key insight: circuit breaker is a client-side defense, not a server-side fix. It protects the caller's thread pool and prevents cascade.",
+                insuranceExample: "Claims service calls third-party fraud detection API. If fraud detection is slow (p99=5s) or down, claims processing blocks waiting for timeout (30s per call). With circuit breaker: after 5 consecutive 5s timeouts, circuit opens—subsequent claims immediately reject fraud detection as unavailable without waiting. Claims processing continues with fraud=unknown (safe default). After 60 seconds, circuit half-opens, tries a single fraud call; if it succeeds, circuit closes and fraud detection resumes. If it fails, circuit opens again.",
+                ecommerceExample: "Inventory service queries warehouse API. If warehouse is overloaded, inventory queries hang. Without circuit breaker, web servers' thread pools exhaust waiting for warehouse responses, causing cascading failure (web server becomes unresponsive). With circuit breaker: after detection service threshold is breached, inventory queries fail fast with cached stale inventory; users see 'inventory may be inaccurate' but can still browse. Once warehouse recovers, circuit half-opens and inventory becomes real-time again.",
+                advancedInsights: "⚠️ Gotchas: (1) Circuit breaker doesn't fix the root cause—it buys time for recovery. (2) Choosing thresholds is hard; too sensitive causes false opens, too lenient doesn't protect. (3) Cascading circuit breakers (A calls B calls C) can cause the entire system to open. (4) Half-open state requires careful management; too many half-open requests can hammer a recovering service. (5) Different error types should trip circuits differently (network error vs. 500 error vs. 429 error). (6) Monitoring is critical—open circuits hide problems; you must alert on them.",
+                followupQuestions: [
+                    "When would you use a circuit breaker vs. a timeout vs. bulkhead pattern?",
+                    "If the circuit breaker is open, what should you return to the user? What's a safe default?",
+                    "How do you choose the failure threshold (e.g., '5 failures' vs. '50% failure rate')?"
+                ]
+            },
+            {
+                id: 7,
+                title: "Bulkhead Pattern & Thread Pool Isolation",
+                category: "Resilience Patterns",
+                quickRef: "Partition resources into isolated pools. Failure in one pool doesn't starve others.",
+                deepDive: "Bulkhead pattern isolates critical resources (e.g., thread pools, connections) so a failure in one doesn't cascade to others. Example: if fraud detection is slow and causes claims thread pool to exhaust, other request types (status checks, policy updates) still have dedicated threads. Implementation: separate ThreadPoolExecutors per service dependency (not one shared pool). If fraud detection has 10-thread pool and it fills, claims waits in its queue, but status checks use their own 5-thread pool and remain responsive. Sizing requires understanding SLA per service: high-criticality services get larger pools.",
+                insuranceExample: "Claims platform with 100 total threads: 40 for claims submission (critical), 30 for fraud check (important), 20 for notification (nice-to-have), 10 for analytics (background). Fraud check becomes slow (p99=10s). Claims submission pool remains unaffected because it's separate. Users can still submit claims; fraud checks queue or timeout independently. Without bulkheads, the slow fraud check would fill the shared thread pool, and claims submission would also become slow.",
+                ecommerceExample: "E-commerce app with thread pools: 50 for checkout (critical), 30 for recommendations (medium), 20 for reviews (low). Recommendation engine becomes slow. Checkout remains responsive because it has its own thread pool. Users can check out without waiting for slow recommendations. The system degrades gracefully per feature.",
+                advancedInsights: "⚠️ Implementation gotchas: (1) Sizing pools requires load testing; too small = unnecessary queuing, too large = resource waste. (2) Queueing policies matter—bounded queues prevent runaway memory. (3) Dynamic sizing (auto-scaling pools) is risky; static pools are predictable. (4) Monitoring thread pool metrics (active threads, queue depth, rejections) is critical. (5) Bulkheads + circuit breakers are often combined—bulkhead prevents resource exhaustion, circuit breaker prevents cascade. (6) In containerized systems, limit CPU/memory per pod; bulkheads are a Java-level implementation.",
+                followupQuestions: [
+                    "How do you size thread pools? What metrics do you monitor?",
+                    "What happens if a request arrives and all threads in the pool are busy?",
+                    "Bulkheads isolate failures, but how does the system degrade? Is degradation visible to users?"
+                ]
+            },
+            {
+                id: 8,
+                title: "Rate Limiting & Token Bucket",
+                category: "API Infrastructure",
+                quickRef: "Token bucket: refill N tokens/sec. Request consumes 1 token. No token = reject request.",
+                deepDive: "Rate limiting protects systems from overload and abuse. Token bucket algorithm: tokens refill at a steady rate (e.g., 100 tokens/sec); each request consumes 1 token; requests without tokens are rejected (or queued). Advantages: smooth traffic (refill rate > peak traffic), burst accommodation (bucket capacity > normal traffic), simple implementation. Other algorithms: leaky bucket (FIFO queue, fixed drain rate), sliding window, sliding window with counters. Distributed rate limiting requires shared state (Redis) so that tokens are tracked globally, not per instance. Per-user/per-IP rate limiting prevents individual clients from consuming all capacity.",
+                insuranceExample: "Claims submission API rate-limited to 1000 requests/minute globally (10 per broker per minute). Token bucket with capacity=1000, refill rate=1000/60 tokens/sec. During peak hours (end of month), if requests exceed 1000/min, excess requests get 429 Too Many Requests. Brokers are throttled proportionally. During off-peak, bucket accumulates tokens (up to capacity), allowing short bursts. Without rate limiting, a single aggressive broker could submit 100k requests, crashing the system.",
+                ecommerceExample: "Search API rate-limited to 100 requests/sec per user (10 per bot). Token bucket: refill=100/sec, capacity=200. A user searching rapidly consumes 10 tokens per second; bucket refills at 100, allowing sustained load and small bursts. Bots searching at 100/sec per second are immediately rate-limited. Search results respond in milliseconds; without rate limiting, a user spamming 10k searches/sec would exhaust database connections.",
+                advancedInsights: "⚠️ Distributed rate limiting challenges: (1) Token bucket requires shared Redis state; Redis outage means rate limiting fails open (dangerous) or closed (blocks all traffic). (2) Clock skew between instances causes inconsistent refill rates. (3) Burst accommodation can be abused; a bucket capacity of 1000 means a client can send 1000 requests instantly, overloading the system. (4) Cost: Redis lookups are O(1) but add latency; cache locally if possible (eventual consistency acceptable). (5) User attribution is hard (IP can be shared, users behind proxies, botnets spoof IPs). (6) Different endpoints should have different limits (read vs. write, simple vs. expensive).",
+                followupQuestions: [
+                    "How do you implement rate limiting across multiple instances? What's the consistency model?",
+                    "If Redis is down, what's your fallback? Should rate limiting fail open or closed?",
+                    "How do you prevent users from bypassing rate limits (e.g., distributed attacks)?"
+                ]
+            },
+            {
+                id: 9,
+                title: "Caching: Cache Aside & Cache Invalidation",
+                category: "Caching",
+                quickRef: "Cache Aside: check cache first; miss = query database, populate cache. Invalidation: delete/update cache on data change.",
+                deepDive: "Cache Aside (lazy loading): on read, check cache; hit = return cached value, miss = query source (DB), populate cache, return value. On write, update source first, then invalidate cache (delete the key). This pattern is simple but has a window where stale data is served (between DB update and cache delete). Alternative: Write-Through (write to cache and source atomically) avoids stale reads but adds latency. Cache invalidation is notoriously hard ('two hard things in CS: naming and cache invalidation'). Strategies: (1) TTL-based (expire after X seconds), (2) Event-based (subscribe to data change events), (3) Predictive (precompute invalidation). Cache stampede occurs when a popular key expires simultaneously on all instances, causing thundering herd of DB queries.",
+                insuranceExample: "Policy cache: GET /policies/{policyId} checks Redis; hit = return in 1ms, miss = query PostgreSQL (100ms), populate Redis with TTL=1hour, return to user. PATCH /policies/{policyId} updates PostgreSQL first, then deletes the Redis key. Next read repopulates cache. During the 0-100ms window after update before read, a user might see stale policy data (e.g., old premium). TTL mitigates this—after 1 hour, cache is guaranteed fresh. Cache stampede: if 1000 users read the same policy simultaneously at t=3600s (expiry), all miss cache, all query DB, causing DB spike. Mitigation: probabilistic expiry (expire at 3600s ± random jitter) or cache warming (preload policies at midnight).",
+                ecommerceExample: "Product cache: GET /products/{id} checks Redis; hit = return in 1ms, miss = query MySQL (50ms), populate cache, return. PATCH /products/{id} (price change) updates MySQL, publishes 'product-updated' event (Kafka), listener deletes Redis key. During the 0-50ms between MySQL update and cache delete, users see old price (race condition). Event-based invalidation is faster than periodic polling but requires event infrastructure. Cache stampede: bestseller product expires at midnight; 10k concurrent reads all miss cache, hammer MySQL. Solution: use probabilistic expiry or preload best-sellers daily.",
+                advancedInsights: "⚠️ Cache invalidation gotchas: (1) Cache Aside has inherent staleness (write-to-read window). (2) Deleting cache without updating source causes read-time recalculation—fine for cheap computations, bad for expensive ones. (3) Distributed caching requires consistency across instances (Redis replication, cache consistency protocols). (4) TTL-only strategy is simple but coarse (1-hour stale data is unacceptable for some use cases). (5) Event-based invalidation requires reliable event delivery (Kafka offset management, DLQs). (6) Cache warming (preloading) works for predictable data (top-100 products) but not for long-tail (rare policies).",
+                followupQuestions: [
+                    "When would you use Write-Through instead of Cache Aside? What's the trade-off?",
+                    "How do you prevent cache stampede? What's the cost of prevention?",
+                    "If a cache node dies, how do you repopulate it without overloading the database?"
+                ]
+            },
+            {
+                id: 10,
+                title: "Database Sharding & Partition Strategies",
+                category: "Database Scalability",
+                quickRef: "Sharding: split data across multiple DBs by key (range, hash, geo). Enables horizontal scaling.",
+                deepDive: "Sharding splits data across independent databases by a shard key (e.g., customerID, orderId). Hash-based sharding maps key to shard uniformly (hash(key) % num_shards). Range-based sharding groups consecutive ranges (1-1M on shard-1, 1M-2M on shard-2) but risks hot shards if distribution is skewed. Geo-based sharding co-locates data with users (Americas on US, Europe on EU). Once sharded, each shard operates independently—no cross-shard transactions (forces SAGA pattern). Resharding (changing num_shards) is complex and requires migration during downtime or dual-write periods. Shard lookup can be via consistent hashing (minimal rehashing on shard addition) or a shard directory (more flexible but adds latency).",
+                insuranceExample: "Claims database sharded on policyID. hash(policyID) % 16 = shard_id (0-15). Each shard is an independent PostgreSQL with 1-10M claims. Policy 12345 claims all go to shard_5; queries are routed directly to shard_5 without consulting other shards. Backup/recovery works per-shard. When adding a 17th shard (capacity increase), consistent hashing rehashes—~1/16 of keys migrate from each shard to the new shard (manageable). Without sharding, a single PostgreSQL would have 160M claims, requiring expensive archival, slow backups, and limited scalability.",
+                ecommerceExample: "Orders database sharded on userID. Consistent hashing ensures each user's orders live on the same shard. User 12345's 100 orders all on shard_3. Order queries (GET /orders?userId=12345) hit one shard, returning in ~10ms. A cross-user query (e.g., 'orders from users age > 25') requires a multi-shard scan (fan-out to all shards, aggregate results)—expensive but rare. Adding a new shard rehashes ~1/16 of users to the new shard with minimal disruption.",
+                advancedInsights: "⚠️ Sharding gotchas: (1) Hot shards: if shard key is not uniform (e.g., shard by region, and 50% of users are in US), US shard overloads. (2) Cross-shard transactions become SAGAs; no atomicity across shards. (3) Resharding is painful—dual writes + backfill + cleanup. (4) Shard lookup latency: consistent hashing is O(1) local; directory lookup adds network latency. (5) Distributed transactions (aggregates) span shards—require application-level joins. (6) Debugging is hard; logs are split across shards. (7) If shard key is wrong, data distribution is skewed—can't re-shard without large migration.",
+                followupQuestions: [
+                    "How do you handle transactions that span multiple shards? Is SAGA your only option?",
+                    "If you need to reshard (add more shards), how do you migrate without downtime?",
+                    "What happens if your shard key is skewed (e.g., all data on one shard)? Can you fix it?"
+                ]
+            },
+            {
+                id: 11,
+                title: "Message Queues & Kafka",
+                category: "Async Communication",
+                quickRef: "Kafka: distributed event log. Producers write events; consumers read from offset. Topics partition data by key.",
+                deepDive: "Kafka is a distributed append-only log. Producers write events to topics; topics are partitioned (default 1 partition per topic but can be higher). Consumers read from partitions, tracking their position (offset). Key properties: (1) Durable (events persisted to disk across replicas), (2) Replayed (consumers can rewind to any offset), (3) Parallel (multiple consumers read different partitions). Consumer groups allow multiple consumers to read the same topic—partitions are assigned to consumers, and only one consumer per partition reads. Delivery semantics: At-least-once (default, may reprocess), At-most-once (may skip), Exactly-once (requires deduplication). Retention policies (time-based or size-based) control how long events are stored.",
+                insuranceExample: "Premium payment events: producer (payment service) writes 'PAYMENT_RECEIVED' events to 'premium-payments' topic (4 partitions). Consumer groups: (1) Analytics reads all events, counts premiums/day (eventual consistency, can reprocess), (2) Notification sends receipts (exactly-once required, uses idempotency keys), (3) Fraud detection analyzes patterns (at-least-once acceptable, can handle duplicates). If a consumer crashes, Kafka rebalances—another consumer in the group continues from the last committed offset, ensuring no gaps. Retention=7 days allows consumers to catch up after outages.",
+                ecommerceExample: "Order events: producer (checkout) writes 'ORDER_PLACED' events. Consumers: (1) Inventory decrements stock, (2) Fulfillment picks items, (3) Notification sends confirmation, (4) Analytics tracks trends. If inventory consumer crashes for 1 hour, it resumes from the last offset, processing all orders from that hour. Multiple partitions allow parallel processing (partition-1 has orders 1-1M, partition-2 has 1M-2M). If one partition's consumer is slow, others continue processing their orders, preventing system-wide bottleneck.",
+                advancedInsights: "⚠️ Kafka complexities: (1) Ordering is per-partition only; if you write to different partitions, you can't guarantee global order. (2) Exactly-once requires deduplication (idempotency keys) on the consumer; Kafka doesn't provide it. (3) Consumer group rebalancing causes brief pauses (stop-the-world); high-traffic systems must minimize rebalancing. (4) Offset management is non-trivial—if you commit before processing, crashes lose messages; if you commit after, duplicates occur. (5) Data retention consumes disk; Kafka is not a data warehouse. (6) Network failures during rebalancing can leave a consumer in an inconsistent state; requires monitoring.",
+                followupQuestions: [
+                    "If a consumer crashes after processing but before committing the offset, what happens?",
+                    "How do you ensure exactly-once delivery with Kafka consumers? Is it possible?",
+                    "What's the difference between partitioning and replication in Kafka? Why do you need both?"
+                ]
+            },
+            {
+                id: 12,
+                title: "Distributed Tracing & Correlation IDs",
+                category: "Observability",
+                quickRef: "Correlation ID: unique ID propagated through all service calls. Enables tracing a single user request across microservices.",
+                deepDive: "Distributed tracing reconstructs the path of a single request through multiple services. Correlation ID (trace ID) is a UUID generated on entry and propagated through all downstream calls (in HTTP headers, RPC metadata, message headers). Each service logs using the correlation ID, enabling post-hoc analysis ('show all logs for trace-id=xyz'). Spans represent individual service operations; a trace is a tree of spans. Tools like Jaeger, Zipkin, Datadog collect spans and visualize latency distribution (e.g., 'checkout takes 500ms: 200ms payment, 150ms inventory, 150ms notification'). Sampling reduces overhead (trace 1% of requests) but may miss rare slow requests; adaptive sampling (sample slow requests more) balances visibility and cost.",
+                insuranceExample: "Claim submission flow: (1) User submits claim via web (trace-id=abc123, span_id=1), (2) Claims API calls fraud-detection (span_id=2, parent=1), fraud takes 500ms, (3) Claims API calls policy-lookup (span_id=3, parent=1), policy takes 100ms, (4) Claims API calls notification (span_id=4, parent=1), notification takes 50ms. Total=500ms (dominated by fraud check). Correlation ID (abc123) is logged in all services. Later, a team member can query Jaeger: 'show trace abc123' to see the waterfall, identify that fraud detection is the bottleneck, and optimize it. Without correlation IDs, tracing across services requires joining logs from multiple services by time, which is error-prone.",
+                ecommerceExample: "Checkout flow: (1) Web API calls payment (trace-id=def456, span_id=1), (2) Payment calls fraud (span_id=2), (3) Payment calls bank (span_id=3), bank takes 1500ms. Checkout total=1500ms. A customer reports checkout is slow. Team queries Jaeger for slow checkouts (p99 latency > 1000ms), finds that bank integration is the bottleneck, and adds caching or async bank verification to improve latency. Without tracing, the team would guess which service is slow (likely blaming their own service, not the bank).",
+                advancedInsights: "⚠️ Tracing gotchas: (1) Overhead: every span is a network call to a tracing backend. Sampling is necessary but reduces visibility. (2) Clock skew: if server clocks are off, span order is incorrect. (3) Storage: traces are verbose and storage-heavy; older traces are usually discarded. (4) Propagation: correlation IDs must be passed through all async operations (Kafka headers, RPC metadata). Missing headers = broken traces. (5) Privacy: traces contain PII (user IDs, data); scrubbing is necessary. (6) Cost: Datadog/New Relic charge per-span; a complex microservices architecture generates millions of spans.",
+                followupQuestions: [
+                    "If a service receives a request without a correlation ID, what should it do? Create one or reject?",
+                    "How do you sample traces in a distributed system? How do you ensure important slow requests aren't sampled out?",
+                    "What information should a span contain? How do you balance detail vs. storage cost?"
+                ]
+            },
+            {
+                id: 13,
+                title: "API Gateway Pattern",
+                category: "Microservices Architecture",
+                quickRef: "API Gateway: single entry point. Routes requests to services, handles cross-cutting concerns (auth, rate limiting, logging).",
+                deepDive: "API Gateway (e.g., Kong, AWS API Gateway, NGINX) sits between clients and microservices. Responsibilities: (1) request routing (path /api/claims → Claims Service, /api/policies → Policy Service), (2) authentication/authorization (verify JWT, check permissions), (3) rate limiting (per-user/per-IP), (4) request/response transformation (add/remove headers, translate formats), (5) logging/monitoring (log all requests, emit metrics), (6) SSL termination (clients talk HTTPS to gateway, gateway talks HTTP to services). Gateway is a single point of failure but also a single point of visibility. Design: stateless, replicated across multiple instances, behind a load balancer. Caching at the gateway layer (e.g., cache GET responses) can significantly reduce load on services.",
+                insuranceExample: "Insurance API Gateway (Kong): all clients talk to gateway.insurance.com. Gateway routes POST /claims → Claims Service (9000), GET /policies → Policy Service (9001), POST /payments → Payment Service (9002). Gateway enforces: (1) JWT auth—verify token, extract userID, pass to service via X-User-ID header, (2) Rate limiting—1000 req/min per user, (3) Logging—all requests logged with trace-id. Without gateway, each service must implement auth/rate limiting independently (duplication, inconsistency). With gateway, it's centralized and uniform.",
+                ecommerceExample: "E-commerce gateway (AWS API Gateway + Lambda): clients call api.example.com. Gateway routes GET /products → Product Service, POST /orders → Order Service, GET /orders/{id} → Order Service. Gateway enforces OAuth2 (redirect unauthenticated users to login), caches GET /products responses (TTL=5min), rate-limits abusive IPs (429 if > 1000 req/min). Traffic spikes (e.g., flash sale) are smoothed by the gateway's rate limiting before reaching services.",
+                advancedInsights: "⚠️ Gateway complexities: (1) Single point of failure—must be highly available (multi-region, auto-failover). (2) Latency overhead—every request passes through the gateway, adding a hop. (3) Versioning: APIs evolve; gateway must route v1 and v2 requests to different services or implementations. (4) Debugging is hard—if a request is dropped at the gateway, the service never sees it. (5) Gateway bloat—tempting to add business logic at the gateway (order validation, fraud checks), violating separation of concerns. (6) Security: gateway has access to all traffic (PII, secrets); must be secured carefully.",
+                followupQuestions: [
+                    "If the gateway is down, what happens? Can you bypass it or fail over automatically?",
+                    "How do you handle request/response transformation in the gateway? Should business logic be there?",
+                    "What should the gateway log? How do you avoid logging sensitive data (passwords, tokens)?"
+                ]
+            },
+            {
+                id: 14,
+                title: "Service Discovery & Load Balancing",
+                category: "Microservices Architecture",
+                quickRef: "Service Discovery: find available service instances. Load Balancing: distribute requests across instances.",
+                deepDive: "Service discovery solves 'where is the policy service running?' In a containerized environment (Kubernetes), services are ephemeral (pods restart, scale up/down). Two patterns: (1) Client-side discovery (client queries registry, gets list of IPs, chooses one), (2) Server-side discovery (client sends to load balancer, load balancer queries registry, forwards to chosen instance). Kubernetes handles this via Service abstraction—a stable DNS name (policy-service.default.svc.cluster.local) resolves to a load balancer IP, which forwards to pods. Load balancing algorithms: (1) Round-robin (next instance in list), (2) Least-connections (instance with fewest active connections), (3) Weighted (instances have different capacities), (4) Hash-based (same client goes to same instance, useful for session affinity). Health checks (liveness, readiness probes in Kubernetes) ensure only healthy instances receive traffic.",
+                insuranceExample: "Claims service deployed on 3 pods (10.0.1.1, 10.0.1.2, 10.0.1.3). Kubernetes Service 'claims-service' has a stable IP (10.0.0.100). DNS entry claims-service.default.svc.cluster.local resolves to 10.0.0.100. Load balancer at 10.0.0.100 distributes requests: request-1 → 10.0.1.1, request-2 → 10.0.1.2, request-3 → 10.0.1.3 (round-robin). If pod 10.0.1.2 becomes unhealthy (readiness probe fails), load balancer stops sending traffic to it. When pod recovers, traffic resumes. Without service discovery, the gateway would need hardcoded IPs (brittle, manual updates).",
+                ecommerceExample: "Product service on 5 instances. Elastic Load Balancer (AWS) distributes requests via least-connections algorithm. Instance-1 has 10 active requests, Instance-2 has 5, Instance-3 has 8. Next request goes to Instance-2 (lowest count). Health checks (GET /health) run every 10 seconds; if Instance-3 fails 3 health checks, it's marked unhealthy and removed from the pool. Auto-scaling: if CPU > 70%, a new instance is launched and automatically added to the load balancer pool.",
+                advancedInsights: "⚠️ Service discovery gotchas: (1) DNS caching can cause load imbalance—if clients cache DNS results, old instances remain in use even after scale-down. (2) Health checks are probes, not guarantees—a pod can pass health checks but be stuck in infinite loop (liveness != readiness). (3) Load balancing is probabilistic—some instances may receive more traffic than others (especially with few instances). (4) Sticky sessions (affinity) can cause load imbalance if one session is very active. (5) During rolling updates, traffic is briefly sent to old and new versions simultaneously; must ensure compatibility or use traffic shifting (canary). (6) Service mesh (Istio, Linkerd) abstracts away load balancing logic but adds latency and operational complexity.",
+                followupQuestions: [
+                    "If a service instance dies mid-request, what happens to the client? Does the load balancer retry?",
+                    "How long does it take for the load balancer to detect a failed instance and stop sending traffic?",
+                    "Should you use sticky sessions (affinity) or stateless services? What are the trade-offs?"
+                ]
+            },
+            {
+                id: 15,
+                title: "Consistent Hashing",
+                category: "Distributed Systems",
+                quickRef: "Consistent Hashing: hash-based partitioning where adding/removing nodes rehashes only 1/N keys (not all).",
+                deepDive: "Traditional modulo hashing (hash(key) % N) causes massive rehashing when N changes—all keys are remapped. Consistent hashing places nodes on a ring (0 to 2^32); keys also hash onto the ring. A key is assigned to the first node clockwise from its position. Adding a node only rehashes keys in the arc between the new node and the previous node clockwise (~1/N keys). Removing a node rehashes keys in its arc to the next node. Virtual nodes (replicas of each node on the ring) improve distribution and reduce impact of node failures. Example: 4 real nodes with 3 virtual nodes each = 12 positions on ring; a failing node rehashes ~1/12 of keys instead of ~1/4.",
+                insuranceExample: "Cache cluster: 4 Redis nodes. hash(policyId) = 1,234,567. Ring positions: Node-A [0-536M], Node-B [536M-1B], Node-C [1B-1.5B], Node-D [1.5B-2B]. policyId hashes to 1.2B, assigned to Node-C. A policy is always cached on Node-C (same node). If Node-C fails, policy is rehashed to Node-D (next node). Without consistent hashing, adding Node-E would rehash all 4 nodes worth of data; with consistent hashing, only Node-D's arc rehashes to Node-E (25% of Node-D's data).",
+                ecommerceExample: "Distributed session store: 3 Memcached nodes. hash(sessionId) determines which node stores the session. Adding a 4th node rehashes ~1/4 of sessions. Without consistent hashing, all sessions would be rehashed (cache miss storm). With consistent hashing, 3/4 of sessions remain on their original nodes; only 1/4 migrate, and the new node is immediately utilized.",
+                advancedInsights: "⚠️ Consistent hashing gotchas: (1) Distribution can be uneven with few nodes; virtual nodes mitigate this. (2) Node failure causes uneven rehashing—if Node-A fails, its arc rehashes to Node-B, causing Node-B to spike in load. (3) Hotspots: if one key is very popular (millions of reads to the same policy), its assigned node is overloaded. (4) Rehashing is not instant—during rehashing, misses occur (cache miss storm if not handled). (5) Implementation complexity increases with virtual nodes. (6) Not suitable for all problems—works for cache/partition; unsuitable for transactions requiring global consistency.",
+                followupQuestions: [
+                    "If you remove a node from a consistent hash ring, which keys are rehashed and why?",
+                    "What's the purpose of virtual nodes? How many should you create per physical node?",
+                    "If a key is extremely popular and hashes to one node, how do you handle the hotspot?"
+                ]
+            },
+            {
+                id: 16,
+                title: "Change Data Capture (CDC)",
+                category: "Data Pipeline",
+                quickRef: "CDC: capture database writes (inserts, updates, deletes) and stream them to downstream systems for sync.",
+                deepDive: "Change Data Capture monitors a database for changes and emits events. Implementations: (1) Query-based (periodic SELECT to detect changes, slow), (2) Trigger-based (database triggers emit events), (3) WAL-based (monitor write-ahead log, e.g., Postgres logical decoding, MySQL binlog). WAL-based is preferred (low overhead, captures all changes). Tools: Debezium (Kafka Connect), AWS DMS. Event structure: {operation: 'INSERT|UPDATE|DELETE', table, before, after, timestamp}. Exactly-once delivery requires deduplication on consumer side (idempotency keys). Use case: keep caches in sync with database (on policy update, emit event, invalidate cache), replicate data to analytics warehouse, populate search indexes.",
+                insuranceExample: "Policy table updates: CDC captures all policy mutations. Events published to 'policy-changes' Kafka topic. Consumers: (1) Cache invalidation—on UPDATE, delete Redis key, next read repopulates; (2) Elasticsearch sync—on UPDATE, reindex the policy document; (3) Data warehouse—load into Snowflake for analytics. Without CDC, each application updating policies must manually invalidate cache, update search index, trigger warehouse load (error-prone). With CDC, it's automatic.",
+                ecommerceExample: "Order table changes: CDC captures inserts, updates, deletes. Events published to 'order-events'. Consumers: (1) Inventory service subscribes to decrements stock on INSERT, (2) Notification service sends updates on UPDATE, (3) Analytics warehouse loads for trend analysis. If a consumer crashes, it can resync from Kafka by replaying order-events from a specific offset.",
+                advancedInsights: "⚠️ CDC gotchas: (1) WAL-based CDC requires database changes (enable logical replication in Postgres). (2) Exactly-once is hard—database writes and CDC events are not atomic. (3) Long CDC lag (events published late) can cause downstream inconsistency. (4) Schema changes (adding/removing columns) must be coordinated with consumers. (5) High-volume tables (billions of rows) produce millions of events; Kafka must handle throughput. (6) Debugging is hard—if a consumer reprocesses old events due to a bug, data is resynced incorrectly. (7) CDC captures logical changes but not application logic (e.g., if app does UPDATE policies SET premium = premium * 1.1, CDC emits the final value, not the formula).",
+                followupQuestions: [
+                    "If CDC events are published but a consumer crashes before processing them, how is recovery handled?",
+                    "What happens if a schema change occurs (e.g., new column added to policies table)? How do consumers adapt?",
+                    "Can you use CDC to rebuild a cache from scratch (not just maintain it)? What are the challenges?"
+                ]
+            },
+            {
+                id: 17,
+                title: "Dead Letter Queues & Retry Strategy",
+                category: "Async Communication",
+                quickRef: "DLQ: sink for messages that fail after max retries. Enables manual inspection and recovery of failures.",
+                deepDive: "Message processing can fail (service down, invalid data, external API error). Retry logic re-attempts processing with exponential backoff (retry 1: 1s, retry 2: 2s, retry 3: 4s, ...). After max retries (e.g., 5), message is moved to Dead Letter Queue (DLQ). DLQ is a separate topic/queue that human operators monitor. Retry strategies differ: (1) Exponential backoff with jitter prevents thundering herd (all messages retry simultaneously), (2) Circuit breaker stops retrying if downstream is overloaded, (3) Poison pill detection (skip messages that always fail). DLQ messages are preserved for forensics—operators can inspect, fix root cause, and replay messages manually.",
+                insuranceExample: "Claims notification: POST claim-approved event to notification service. If notification service is down, Kafka auto-retries (exponential backoff). After 5 retries over 30 minutes, message moves to DLQ. Operator checks DLQ, sees notification service was down, fixes it, and manually replays DLQ messages. Customers receive notifications for claims approved 30 minutes ago, all at once (acceptable). Without DLQ, messages are lost forever after retries fail.",
+                ecommerceExample: "Order fulfillment: Warehouse service processes order-placed events. If order has invalid item (doesn't exist in warehouse), processing fails. Retries 5 times but always fail (invalid item won't exist after retries). Message moves to DLQ. Operator reviews DLQ, sees invalid item, manually corrects order or contacts customer. Without DLQ, order would hang in processing forever.",
+                advancedInsights: "⚠️ Retry strategy gotchas: (1) Exponential backoff can be very long (retry 10: 512s); after 10 retries, it takes ~17 minutes. (2) Jitter adds randomness to prevent synchronized retries, but can make debugging hard. (3) Poison pills (messages that always fail) must be detected and skipped, not retried forever. (4) DLQ monitoring is manual; missing DLQ alerts means failed messages go unprocessed. (5) Replaying DLQ messages must be idempotent (same message processed twice yields same result). (6) Distinguishing transient errors (service temporarily down) from permanent errors (bad data) is non-trivial. (7) DLQ storage grows over time; must be purged periodically.",
+                followupQuestions: [
+                    "How do you decide between retrying immediately, exponential backoff, and moving to DLQ?",
+                    "If a message in the DLQ is manually replayed and fails again, where does it go?",
+                    "How do you handle poison pills (messages that always fail)? How do you detect them?"
+                ]
+            },
+            {
+                id: 18,
+                title: "Event Sourcing",
+                category: "Event-Driven Architecture",
+                quickRef: "Event Sourcing: store all state changes as immutable events. Derive current state by replaying events.",
+                deepDive: "Instead of storing current state (e.g., policies table with status, premium), store immutable events: 'POLICY_CREATED', 'PREMIUM_INCREASED', 'POLICY_APPROVED', 'CLAIM_FILED'. Current state is computed by replaying events in order. Advantages: (1) Complete audit trail (who changed what, when), (2) Time travel (query state at any point in history), (3) Event replay for recovery/testing. Disadvantages: (1) Complexity—must version events and handle schema evolution, (2) Eventual consistency—replays take time, (3) Snapshots needed for large event streams (computing state from 1M events is slow). Event store is typically append-only database or log (Kafka, EventStoreDB). CQRS (Command Query Responsibility Segregation) pairs event sourcing with separate read models—write model uses events, read model (materialized view) is optimized for queries.",
+                insuranceExample: "Policy state: instead of storing 'status=approved, premium=1000', store events: (1) PolicyCreated{id, customer, coverage}, (2) PolicyUnderwritten{id, premium=1000}, (3) PolicyApproved{id}. Current policy status computed by replaying: created → underwritten → approved. If a new requirement is added (compute how many times premium was adjusted), no schema change needed; just query events. Audit trail is automatic. Time travel: 'what was the premium 6 months ago?' Query events up to that date.",
+                ecommerceExample: "Order state: instead of storing 'status=pending_payment', store events: (1) OrderPlaced{id, items}, (2) PaymentAuthorized{id, amount}, (3) PaymentCaptured{id}. Current order state computed by replaying. If payment fails, OrderPaymentFailed{id, reason} is appended. No updates, only appends. Audit trail is complete. Time travel: 'how long between OrderPlaced and PaymentCaptured?' Query events.",
+                advancedInsights: "⚠️ Event sourcing complexities: (1) Event versioning—if event schema changes (e.g., premium field type changes), old events must be upcasted. (2) Event replay is expensive—computing state from 1M events is slow; snapshots (periodic checkpoints) are needed. (3) Consistency: current state is eventually consistent (replay lag). (4) Querying is non-trivial—you can't query 'all policies with premium > 1000' by replaying; you need a materialized view (CQRS). (5) Event store must be durable and distributed (high availability). (6) Debugging distributed logic is harder (events are spread across time and space).",
+                followupQuestions: [
+                    "If an event schema changes, how do you handle old events? Can you replay them correctly?",
+                    "Is event sourcing compatible with ACID transactions? How do you ensure atomicity?",
+                    "If you need to query 'all policies with premium > 1000', how do you do it with event sourcing?"
+                ]
+            },
+            {
+                id: 19,
+                title: "CQRS (Command Query Responsibility Segregation)",
+                category: "Architectural Patterns",
+                quickRef: "CQRS: separate write model (commands) from read model (queries). Write and read models can be different shapes.",
+                deepDive: "CQRS splits a system into two sides: write path (commands that modify state) and read path (queries that retrieve data). Write model is optimized for consistency and atomicity (e.g., normalized database). Read model is optimized for query performance (e.g., denormalized views, different storage). They stay in sync via events (on write, emit event; read model subscribes and updates). Example: write model is a normalized relational DB; read model is Elasticsearch for full-text search. Advantages: (1) independent scaling (read-heavy workloads scale reads separately), (2) optimized storage per purpose, (3) natural pairing with event sourcing. Disadvantages: (1) eventual consistency between models, (2) complexity (two systems to manage), (3) distributed tracing harder (writes and reads are separate).",
+                insuranceExample: "Write model: policies stored in normalized PostgreSQL (policy, coverage_types, riders, amendments tables). Normalization ensures consistency. On policy update, event emitted ('POLICY_UPDATED'). Read model: Elasticsearch index with denormalized policy documents. Subscriber listens to events and updates Elasticsearch. User queries (GET /search?premium_range=...) hit Elasticsearch, returning results in 10ms. Without CQRS, queries would hit PostgreSQL, requiring expensive JOINs across tables.",
+                ecommerceExample: "Write model: orders in normalized MySQL (orders, items, payments, shipments tables). Commands (PlaceOrder, CapturePayment) update MySQL atomically. On order state change, event emitted. Read model: Elasticsearch with denormalized orders. User queries (GET /my-orders) hit Elasticsearch, returning cached results in 5ms. Analytics queries (e.g., total revenue per region) hit a data warehouse. Without CQRS, all queries hit MySQL, causing contention.",
+                advancedInsights: "⚠️ CQRS gotchas: (1) Eventual consistency—a user might update an order and not see the change in queries for 100ms (lag time). (2) Event replay can be expensive; materialized views need to be selectively updated (not full replay on every event). (3) Complexity: two separate systems that must stay in sync. Testing is harder (must test write and read paths). (4) Debugging is harder—issue might be in write model, read model, or event sync. (5) Schema evolution is non-trivial—if write model schema changes, read model must adapt. (6) Dual-write (updating both models synchronously) defeats the purpose and causes distributed transaction issues.",
+                followupQuestions: [
+                    "If the read model diverges from the write model (sync is broken), how do you recover?",
+                    "Is CQRS always paired with event sourcing? Can you use CQRS without event sourcing?",
+                    "How do you handle transactions in CQRS? Can you atomically update both write and read models?"
+                ]
+            },
+            {
+                id: 20,
+                title: "Bulkhead vs Circuit Breaker vs Timeout",
+                category: "Resilience Patterns",
+                quickRef: "Timeout: abort if reply doesn't arrive in X ms. Circuit Breaker: fail fast if service is broken. Bulkhead: isolate resource pools to prevent cascade.",
+                deepDive: "Three complementary resilience patterns: (1) Timeout—caller waits max X seconds; if no response, fails. Prevents indefinite hangs. Risk: too short = false timeouts, too long = delayed failure detection. (2) Circuit Breaker—after N failures, open circuit (fail immediately); after timeout, half-open (test recovery). Prevents cascade and fast-fails. Risk: circuit opens when service briefly hiccups. (3) Bulkhead—dedicate thread pools per dependency. Failure in one pool doesn't starve others. Risk: complex sizing, underutilization if sized conservatively. Combined: timeout prevents indefinite waits, circuit breaker prevents cascade, bulkhead prevents resource exhaustion.",
+                insuranceExample: "Claims service calls fraud detection (external SaaS). (1) Timeout=2s (fraud must respond within 2s or skip). (2) Circuit breaker opens after 5 failures, fail-fast for 30s, then half-open. (3) Dedicated thread pool (10 threads for fraud calls). If fraud is down, claims don't hang indefinitely (timeout), don't cascade failures (circuit breaker), don't exhaust thread pool (bulkhead). Claims continue with fraud=unknown (safe default).",
+                ecommerceExample: "Checkout calls payment service. (1) Timeout=3s. (2) Circuit breaker opens after 10% failure rate over 100 requests. (3) Dedicated thread pool (50 threads for payment). If payment is slow, checkout fails fast (timeout), prevents cascade (circuit breaker), ensures other checkout operations aren't starved (bulkhead).",
+                advancedInsights: "⚠️ Combined pattern gotchas: (1) Timeout + circuit breaker: circuit opens after X timeouts; ensure timeout is shorter than circuit breaker threshold. (2) Bulkhead + circuit breaker: if bulkhead's queue fills, requests wait indefinitely (combine with bounded queue + rejection policy). (3) Cascading circuit breakers: if service A calls B calls C, and C opens, B might open, then A opens (domino effect). Monitor this. (4) Timeout is per-call; total request timeout = sum of downstream timeouts (e.g., A→B(2s) → C(2s) = 4s total). (5) Choosing values is non-trivial; requires load testing.",
+                followupQuestions: [
+                    "If you set timeout=1s but downstream service's p99 latency is 1.5s, what happens?",
+                    "Can you use all three patterns (timeout, circuit breaker, bulkhead) together? Do they interfere?",
+                    "If circuit breaker is open, should you retry, return error, or use cached response?"
+                ]
+            },
+            {
+                id: 21,
+                title: "Observability: Logs, Metrics, Traces",
+                category: "Observability",
+                quickRef: "Logs: discrete events. Metrics: time-series data (counts, latencies). Traces: request path through services.",
+                deepDive: "Observability is the ability to infer system state from external outputs. Three pillars: (1) Logs—discrete events (one claim processed, payment failed, service started). Unstructured (text) or structured (JSON). Tools: ELK stack, Datadog. (2) Metrics—time-series data (CPU %, request count/min, latency p50/p99). Tools: Prometheus, Graphite, Datadog. (3) Traces—request path from entry to exit (user request hits API → calls payment → calls notification). Tools: Jaeger, Zipkin, Datadog. Best practice: correlate all three via correlation IDs. A spike in metrics (latency p99 = 5s) is investigated via traces (which service is slow?) and logs (why is that service slow?).",
+                insuranceExample: "A customer reports slow claim submission. (1) Metrics show latency p99 spiked from 500ms to 5s. (2) Trace (trace-id=xyz) shows: API (100ms) → fraud detection (4000ms) → policy lookup (50ms) → notification (100ms). Fraud detection is slow. (3) Logs from fraud service show: 'connecting to external vendor took 3500ms'. Vendor is experiencing latency. Team digs into why connection is slow (network issue, vendor overloaded?), finds vendor misconfigured, contacts them. Without observability, team would guess.",
+                ecommerceExample: "Checkout latency increased from 500ms to 1000ms. (1) Metrics show p99 latency spike. (2) Trace shows: API (100ms) → payment (800ms) → inventory (50ms) → notification (50ms). Payment is slow. (3) Logs show: 'payment service processing payment in queue, queue depth = 100'. Underlying issue: payment service is undersized. Team scales up payment service (add instances). Without observability, team would blame network or database, missing root cause.",
+                advancedInsights: "⚠️ Observability gotchas: (1) Overhead—every log, metric, trace adds latency and storage cost. Sampling is necessary (sample 1% of traces). (2) Clock skew—timestamps across services may be off, causing trace order to be incorrect. (3) PII in logs—passwords, credit cards, policy numbers leak if not scrubbed. (4) Storage costs—Datadog charges per-span; a complex microservices architecture generates millions of spans daily (expensive). (5) Signal-to-noise—too many metrics/logs makes finding issues harder. (6) Post-mortem blindness—if tracing is only enabled after a crash (on-demand tracing), you can't see the past.",
+                followupQuestions: [
+                    "How do you decide what to log? What level of detail is enough?",
+                    "If storage is expensive, how do you choose what metrics to keep? Can you aggregate/downsample?",
+                    "How do you prevent PII from leaking into logs? What's the strategy?"
+                ]
+            },
+            {
+                id: 22,
+                title: "Database Connection Pooling",
+                category: "Database Scalability",
+                quickRef: "Connection Pool: reuse database connections. Pool maintains N open connections; requests borrow from pool.",
+                deepDive: "Opening a database connection is expensive (~50-200ms overhead: TCP handshake, auth, initialization). Connection pooling maintains a fixed set of open connections; requests borrow, use, and return connections instead of creating new ones. Pool size = min connections to keep open. If all connections are in use, request waits in queue. Timeout = max time to wait for a free connection. Stale connections (idle for too long) are closed and replaced. Health checks (ping) detect disconnected connections. Too-small pool = high contention, Too-large pool = resource waste (each connection consumes RAM, file handles). Sizing: pool = (core count × 2) + effective spindle count (for databases). Java: HikariCP, C3P0.",
+                insuranceExample: "Claims service: HikariCP pool (20 connections to PostgreSQL). Policy reads reuse connections from pool (~5ms per borrow). Each claim processing borrows 1-3 connections (fetch policy, lock for update, insert claim). With connection pooling, 100 concurrent claims use only 20 connections (multiplexed). Without pooling, 100 claims = 100 connections (PostgreSQL can handle ~300-500 before overload, but resource-heavy). Pool timeout = 10s; if a claim is stuck waiting for a connection, it fails after 10s instead of hanging indefinitely.",
+                ecommerceExample: "Order service: HikariCP pool (30 connections to MySQL). Checkout requests reuse connections. During flash sale, 10k concurrent checkouts use the same 30 connections (multiplexed). Excess requests wait in queue; if timeout=5s and they don't get a connection within 5s, they fail (gracefully under load). Without pooling, 10k checkouts = 10k connections; MySQL crashes at ~1000 connections.",
+                advancedInsights: "⚠️ Connection pooling gotchas: (1) Pool size is a tuning parameter—too small causes contention, too large wastes resources. (2) Leaks: if code forgets to return a connection, it's held indefinitely, depleting pool. Monitoring pool size is critical. (3) Blocking: if a request can't get a connection within timeout, it fails; timeout design is important. (4) Stale connections: if a connection is idle and network breaks, the connection is marked bad; health checks detect this. (5) Database restart: all pool connections are invalidated; application must gracefully handle reconnection. (6) Multi-tenancy: if different tenants use the same pool, quota/prioritization is non-trivial.",
+                followupQuestions: [
+                    "If a connection is leaking (not returned to pool), how do you detect it? How do you recover?",
+                    "What happens if the database restarts? Do all pooled connections break? How does the app recover?",
+                    "How do you size the connection pool? What are the trade-offs?"
+                ]
+            },
+            {
+                id: 23,
+                title: "Distributed Locking & Consensus",
+                category: "Distributed Coordination",
+                quickRef: "Distributed locks prevent concurrent access to shared resources. Implementations: Zookeeper, Etcd, Redis (with caveats).",
+                deepDive: "In a distributed system, multiple processes may compete for the same resource (e.g., leader election, resource acquisition). Distributed locks ensure only one process can access the resource. Implementations: (1) Zookeeper—uses Raft consensus, provides strongly consistent locks, (2) Etcd—similar, uses Raft, (3) Redis—fast but not strongly consistent (loss of locks on failover). Lock semantics: (1) Mutual exclusion—only one holder, (2) Deadlock-free—processes eventually acquire or timeout, (3) Fault-tolerant—if holder dies, lock is released (via TTL). Fair locking (FIFO) is hard in distributed systems (requires coordination). Typical approach: timeouts (acquire lock with TTL; if not released, TTL expires).",
+                insuranceExample: "Premium adjustment job runs nightly, updates all policies. To prevent concurrent runs, job acquires distributed lock (via Zookeeper) before starting. If two instances try to run simultaneously, one acquires lock, the other waits/fails (configurable). Lock TTL = 2 hours; if job crashes mid-execution, lock auto-releases after 2 hours (preventing deadlock).",
+                ecommerceExample: "Inventory management: when an item is purchased, inventory is decremented. To prevent overselling (concurrent purchases of last item), a distributed lock (via Redis or Etcd) ensures only one purchase process accesses a given item simultaneously. Lock duration = 100ms (time to decrement and commit). Multiple customers can purchase different items in parallel; same item is protected by the lock.",
+                advancedInsights: "⚠️ Distributed locking gotchas: (1) Redis locks are not strongly consistent—if Redis leader fails after granting a lock but before replicating to followers, two processes can hold the same lock. Recommended: use Zookeeper/Etcd instead. (2) Deadlocks: if a process acquires lock-A then lock-B, and another acquires lock-B then lock-A, deadlock occurs. Avoid nested locks. (3) Timing: if lock TTL is too short, holder dies before releasing, causing premature unlock and lost mutual exclusion. If too long, system waits unnecessarily on failure. (4) Fair locking (FIFO) requires Zookeeper's sequential nodes, adding complexity. (5) Byzantine faults—if a process holding a lock is slow/unreliable, it can prevent others from acquiring (mitigate with timeouts). (6) Cost—Zookeeper/Etcd add latency and complexity; not always necessary (atomic database updates may suffice).",
+                followupQuestions: [
+                    "Is Redis suitable for critical locks (e.g., payment processing)? What are the risks?",
+                    "If a process holds a lock and dies, how long until the lock is released?",
+                    "How do you implement fair (FIFO) locks in a distributed system?"
+                ]
+            },
+            {
+                id: 24,
+                title: "Request Deduplication & Exactly-Once Semantics",
+                category: "Distributed Systems",
+                quickRef: "Exactly-once: idempotent operations + deduplication. Request ID stored + checked before execution.",
+                deepDive: "In distributed systems with retries, the same request may be executed multiple times. Exactly-once semantics ensures side effects occur only once despite retries. Implementation: (1) Idempotent operation—same input produces same output (requests can be reordered/duplicated), (2) Deduplication—store request ID + result; before executing, check if ID exists; if yes, return cached result; if no, execute and store. Storage: persistent (database, Redis with RDB snapshots). Exactly-once requires both: idempotency alone isn't enough (operation might be side-effect-heavy), deduplication alone isn't enough (slow, high storage).",
+                insuranceExample: "Premium payment request: client generates paymentRequestId=uuid. POST /payments with request ID. Server checks if paymentRequestId exists; if yes, return cached receipt (already paid); if no, charge customer, store paymentRequestId + receipt, return receipt. Retry with same paymentRequestId → same receipt, customer charged once. Request deduplication storage: Redis (TTL=24h) or database (index on paymentRequestId).",
+                ecommerceExample: "Place order: client generates orderRequestId=uuid. POST /orders with request ID. Server checks if orderRequestId exists; if yes, return cached order; if no, create order, store orderRequestId + order, return order. Retry → same order returned, inventory decremented once, notification sent once. Request deduplication: in-memory cache + database backup.",
+                advancedInsights: "⚠️ Exactly-once complexities: (1) Storage—deduplication state must survive server restarts. (2) Distributed systems—deduplication must be consistent across multiple instances; use shared storage (database, Redis). (3) TTL—how long to keep deduplication state? If TTL is too short, late retries see cache miss and reprocess. (4) Garbage collection—old deduplication entries must be purged; leaks cause memory growth. (5) If deduplication store is down—do you allow re-execution (lose exactly-once) or block (false negatives)? (6) Some operations are naturally idempotent (PUT with full resource); others require explicit deduplication (POST).",
+                followupQuestions: [
+                    "If the deduplication cache is lost (Redis down), can you still guarantee exactly-once?",
+                    "How long should you keep deduplication state? What's the cost of keeping it too long?",
+                    "Is every operation suitable for exactly-once? Which operations require it?"
+                ]
+            },
+            {
+                id: 25,
+                title: "Data Consistency Models: Strong vs. Eventual Consistency",
+                category: "Consistency Models",
+                quickRef: "Strong: all reads see latest write (linearizability). Eventual: replicas diverge temporarily, then converge.",
+                deepDive: "Consistency defines how replicas stay in sync. (1) Strong consistency (linearizability)—all reads see the latest write; appears as if there's only one copy of data. Requires immediate replication (blocks on write). High latency, low availability. (2) Eventual consistency—writes are replicated asynchronously; replicas may diverge temporarily but converge. High availability, eventual strong consistency (after all writes stop). (3) Causal consistency—writes that are causally related are visible in order; other writes can be reordered. Middle ground. Implementation of strong consistency requires consensus (Raft, Paxos), adding latency. Eventual consistency requires conflict resolution (CRDTs, vector clocks, last-write-wins).",
+                insuranceExample: "Policy updates: strong consistency—on policy change, database writes synchronously to primary + followers (quorum replication); read from quorum; guarantee all reads see latest. Latency = ~100ms (network round-trip + disk sync). Eventual consistency—writes asynchronously replicate (100-500ms lag); users briefly see stale policy data. Acceptable for most reads (policy rarely changes). Chosen based on use case: claims processing (strong), policy viewing (eventual).",
+                ecommerceExample: "Inventory: strong consistency—on purchase, inventory is decremented atomically (Raft consensus). Prevents overselling but adds latency (50-100ms per purchase). Eventual consistency—decrements asynchronously replicated; briefly oversells, then corrects. Acceptable for short windows (seconds) if stock is buffered. Most e-commerce chooses eventual consistency with monitoring to catch overselling.",
+                advancedInsights: "⚠️ Consistency trade-offs: (1) Strong consistency = lower availability (network partitions cause unavailability). (2) Eventual consistency = higher availability but user confusion (sees stale data, then updated data). (3) CAP theorem: partition tolerant systems must choose between consistency and availability. (4) Hybrid approaches—use strong consistency for critical data (payments), eventual for non-critical (product cache). (5) Causal consistency is expensive (requires tracking causality via vector clocks). (6) Sequential consistency (easier to understand, harder to implement) vs. linearizability (hardest but strongest).",
+                followupQuestions: [
+                    "When would you choose strong consistency over eventual consistency?",
+                    "Can you switch from eventual consistency to strong consistency without downtime?",
+                    "What's the difference between causal consistency and strong consistency?"
+                ]
+            },
+            {
+                id: 26,
+                title: "Network Partitions & Split-Brain Problem",
+                category: "Distributed System Challenges",
+                quickRef: "Network partition: two halves of a distributed system can't communicate. Split-brain: both halves act as the system.",
+                deepDive: "A network partition occurs when network connectivity is lost between parts of a distributed system. Without communication, each partition operates independently. Split-brain occurs if both partitions elect a leader or accept writes, causing divergence. Prevention: (1) quorum-based consensus—a partition with majority can continue, others are blocked. Guarantees at most one partition is live. (2) Heartbeats—periodically ping peers; if heartbeats stop, declare peers dead. Risk: false positives (network jitter, GC pauses cause heartbeat loss). (3) Fencing—if a leader loses heartbeat, it acquires a distributed lock before continuing; if lock is lost, it stops. Kubernetes uses these mechanisms (leader election via Etcd).",
+                insuranceExample: "Claims processing with 5 data center replicas (US-East, US-West, EU-Central, AP-South, AU-East). Network partition: EU and AP are isolated from US and AU. Three options: (1) US+AU (majority quorum) elects new leader, continues processing; EU+AP are blocked (users in those regions experience downtime). (2) If quorum not used, all partitions elect leaders, causing split-brain (claims processed differently in each partition, reconciliation nightmare). Quorum-based approach is safer.",
+                ecommerceExample: "Global order processing with 3 data centers. Network partition: DC-1 vs. DC-2+DC-3. DC-2+DC-3 have quorum (2/3), so they elect a leader and continue; DC-1 is blocked. Users in DC-1 experience outage but system remains consistent (no split-brain). Without quorum, DC-1 might also elect a leader, causing orders to be processed in both partitions (duplicates, inconsistency).",
+                advancedInsights: "⚠️ Split-brain gotchas: (1) False positives—GC pause causes heartbeat miss, partition is declared dead prematurely. (2) Quorum is majority (3 out of 5 survives 2 failures); asymmetric quorums are possible but complex. (3) Fencing requires distributed lock (add external service dependency). (4) Detection time—heartbeat timeout = ~10-30s (detection lag, during which partition is unaware). (5) Byzantine faults—if leaders in two partitions both claim to be leader, you need external arbitration (e.g., global consensus service). (6) Asymmetric partitions—some nodes can talk to A but not B, making detection non-trivial.",
+                followupQuestions: [
+                    "If a network partition occurs, how long before split-brain is detected?",
+                    "Why is quorum (majority) important? Can't you use a majority-of-leaders approach?",
+                    "If a leader is in the minority partition, should it stop or continue?"
+                ]
+            },
+            {
+                id: 27,
+                title: "Bloom Filters & Probabilistic Data Structures",
+                category: "Data Structures for Scale",
+                quickRef: "Bloom Filter: O(1) space + time membership test. False positives possible, no false negatives.",
+                deepDive: "Bloom filter answers 'is X in set S?' with constant time/space. Space = 1-2 bits per element (much smaller than storing elements). Time = O(k) where k = number of hash functions (typically 3-7). Accuracy controlled by space allocated; more space = fewer false positives. False positives (reports X is in set when it's not) are possible; false negatives are not (if Bloom says X is not in set, X is definitely not in set). Use case: check if a value exists before expensive lookup (e.g., check if policy ID exists before querying database). If Bloom says 'not in set', skip database query; if Bloom says 'in set', query database (handles false positives). Variants: counting Bloom filters (support deletions), scalable Bloom filters (grow as needed).",
+                insuranceExample: "Before querying policies database, check a Bloom filter (in-memory, ~100MB for 100M policies). Bloom says 'policy-12345 is in set' with 1% false positive rate. Query database; 99% of the time, it's a hit; 1% of the time, false positive (waste one DB query). Without Bloom filter, 20% of requests query the database for non-existent policies (users typing wrong policy IDs). Bloom filter reduces database load significantly (saves 19% of queries).",
+                ecommerceExample: "Check if a user has ever purchased an item before (personalization). Bloom filter in-memory (1 bit per user-item pair). Before querying purchase history (expensive), check Bloom. Hit = likely purchased; miss = definitely not purchased. False positive (says purchased but didn't) is acceptable—show personalized recommendation, user ignores if not relevant. False negative (says not purchased but did) is bad—miss personalization. Bloom filter's guarantee (no false negatives) is important here.",
+                advancedInsights: "⚠️ Bloom filter gotchas: (1) No deletions (standard Bloom filter). (2) False positives are unavoidable; trade-off between space and accuracy. (3) Not suitable for accurate counts (counting Bloom filters exist but less precise). (4) Hash collisions—if hash functions collide, accuracy degrades. (5) Scalability—as set grows, accuracy degrades unless Bloom filter is resized. (6) Serialization—Bloom filters in memory are lost on restart; must persist to disk or rebuild from source.",
+                followupQuestions: [
+                    "When would you use a Bloom filter instead of a set or hash table?",
+                    "If a Bloom filter is full, how do you handle new insertions?",
+                    "What's the trade-off between space and accuracy in a Bloom filter?"
+                ]
+            },
+            {
+                id: 28,
+                title: "Cache Stampede & Cache Warming",
+                category: "Caching",
+                quickRef: "Cache stampede: popular key expires, all requests miss cache simultaneously, hammer database. Warming: preload cache.",
+                deepDive: "Cache stampede (thundering herd) occurs when a popular cached key expires and many concurrent requests all miss cache, causing a spike in database load. Prevention: (1) probabilistic expiry—add jitter to TTL (expire at T ± random), stagger expirations, (2) cache warming—preload popular data before it's requested, (3) locking—on cache miss, lock the key; subsequent requests wait for the first request to populate cache; lock holder releases after populating. Cache warming: identify popular data (top-100 products, active users) and refresh periodically (midnight, before peak hours). Benefits: zero cache misses for popular data. Drawback: prediction is hard (which data is popular?).",
+                insuranceExample: "Top-100 policies cache: expires at midnight. At 12:00:01 AM, 10,000 users check policies simultaneously. Without cache warming, all 10,000 miss cache, query database (100 simultaneous queries). Database spikes, queries queue, latency increases. With cache warming: at 11:59 PM (1 minute before), batch job reloads top-100 policies. At midnight, cache is warm; 10,000 users hit cache, no database spike.",
+                ecommerceExample: "Best-seller product cache: 50,000 users view the product daily. TTL=1 hour. Without warming, every 1 hour, all 50,000 requests (within 1 second) miss cache, load database. With warming: refresh the cached product every 55 minutes (before expiry), ensuring cache is always fresh. Zero stampede.",
+                advancedInsights: "⚠️ Cache warming/stampede gotchas: (1) Warming requires knowing what to warm (popular data). (2) If warming process is slow, cache is stale by the time warming completes. (3) Jitter adds randomness—cache misses are distributed, not all at once. (4) Locking on cache miss: if lock holder crashes, other requests hang; must have lock timeout. (5) Warming costs resources (compute, disk I/O); don't warm everything. (6) If data changes frequently (e.g., real-time stock prices), warming is ineffective.",
+                followupQuestions: [
+                    "How do you decide which data to warm? What if popularity changes?",
+                    "Is jitter (probabilistic expiry) enough to prevent stampede?",
+                    "If a cache warming job fails, what's the fallback?"
+                ]
+            },
+            {
+                id: 29,
+                title: "Sharding Hot Spots & Rebalancing",
+                category: "Database Scalability",
+                quickRef: "Hot spot: one shard receives disproportionate load due to skewed key distribution. Rebalance by splitting shard.",
+                deepDive: "Sharding by key assumes uniform distribution. In reality, distribution is skewed (e.g., 10% of keys = 50% of load). A shard handling disproportionate keys is a hot spot. Causes: (1) celebrity effect (one user/item is very popular), (2) temporal skew (peak hours are uneven), (3) poor shard key (e.g., shard by country, 50% of data is US). Solutions: (1) detection—monitor per-shard load (latency, QPS); (2) splitting—split hot shard into sub-shards (shard-5 → shard-5a + shard-5b), rebalancing keys. Splitting requires downtime or dual-write period. (3) Key remapping—change shard key (e.g., from userID to hash(userID + randomValue)), requires migration. (4) Caching—cache hot keys in-memory, reducing database load.",
+                insuranceExample: "Claims sharded on policyID. A viral insurance product has millions of claims. That shard is hot (high CPU, latency). Solution: split that shard by claim creation date (claims from Jan on shard-5a, Feb on shard-5b), or use composite shard key (policyID + claimID). Monitor other shards for hot spots. Without rebalancing, hot shard becomes bottleneck.",
+                ecommerceExample: "Orders sharded on userID. Amazon's Andy Jassy's user ID happens to be present (hypothetically—obviously not true, but illustrates the concept). His orders shard receives millions of requests (staff testing, simulations), making it hot. Solution: use composite key (userID + hash(orderID)), redistributing load. Or detect celebrity keys, cache them separately.",
+                advancedInsights: "⚠️ Hot spot complexities: (1) Detection is non-trivial—latency spikes can be due to other factors (network, GC). (2) Rebalancing during production is risky (dual-writes, migration bugs). (3) Some hot spots are inherent (viral products can't be split away). (4) Dynamic rebalancing (splitting shards on-the-fly) is complex; most systems require downtime. (5) Composite keys reduce hot spots but increase query complexity (can't query single shard by userID alone). (6) Caching hot keys masks the problem but adds operational complexity.",
+                followupQuestions: [
+                    "How do you detect a shard is becoming hot? What latency/load threshold triggers action?",
+                    "If you split a hot shard, how do you migrate data without downtime?",
+                    "Can you use caching instead of rebalancing? When is caching insufficient?"
+                ]
+            },
+            {
+                id: 30,
+                title: "Three-Phase Commit & SAGA Pattern Comparison",
+                category: "Distributed Transactions",
+                quickRef: "3PC: 3-phase protocol (prepare, commit request, commit). SAGA: long-lived transactions with compensations.",
+                deepDive: "Two approaches to distributed transactions: (1) Three-Phase Commit—coordinator asks participants to prepare; if all agree, commit request phase; then final commit phase. Survives single failures but has blocking (participants locked during prepare phase). Slow (3 round-trips). (2) SAGA pattern—split long transaction into short local transactions, each with a compensation (rollback). If one fails, compensate previous steps. No blocking, no coordinator, but eventual consistency (divergent state during saga). 3PC is synchronous (all-or-nothing); SAGA is asynchronous (relaxed consistency). 3PC works for monolith or few databases; SAGA for microservices. 3PC's guarantee: atomicity (all-or-nothing); SAGA's guarantee: eventual consistency (all succeed or all compensate, but intermediate states are visible).",
+                insuranceExample: "Premium payment 3PC: (1) Prepare phase—reserve money from customer, lock policy, (2) Commit request—confirm from all participants, (3) Commit phase—finalize transfer, update policy. If any participant says 'no' in prepare, all abort. All-or-nothing but slow (500ms for 3 round-trips). SAGA alternative: (1) Debit customer, (2) Create claim reserve, (3) Update policy status. If step 2 fails, compensate step 1 (credit back). Faster (eventual consistency) but intermediate states visible (customer sees debit, then credit; claim reserve never created).",
+                ecommerceExample: "Order fulfillment 3PC: (1) Prepare—check payment, reserve inventory, book courier, (2) Commit request—confirm all, (3) Commit—finalize all. Atomic but slow. SAGA alternative: (1) Charge payment, (2) Decrement inventory, (3) Book courier. If step 2 fails, refund payment (compensation). Faster (no blocking) but intermediate states visible (payment charged, inventory not decremented).",
+                advancedInsights: "⚠️ 3PC vs SAGA trade-offs: (1) 3PC blocks; if a participant fails, transaction is stuck (coordinator must timeout). (2) SAGA is non-blocking but requires explicit compensation logic. (3) 3PC has inherent latency (3 round-trips); SAGA can be faster if asynchronous. (4) 3PC guarantees atomicity; SAGA guarantees eventual consistency. (5) 3PC is harder to reason about (hidden complexity in coordinator). (6) Both scale poorly with many participants (3PC: 3 round-trips × N participants; SAGA: complexity grows). (7) 3PC requires participants to be compatible (support 2PC protocol); SAGA works with any services (event-driven).",
+                followupQuestions: [
+                    "When would you choose 3PC over SAGA? What's the cost of atomicity?",
+                    "In a SAGA, if a compensation fails, what's your recovery strategy?",
+                    "Can you combine 3PC and SAGA (3PC within a SAGA step)?"
+                ]
+            }
+        ];
+
+        const searchInput = document.getElementById('searchInput');
+        const topicsGrid = document.getElementById('topicsGrid');
+        const noResults = document.getElementById('noResults');
+        const totalTopicsSpan = document.getElementById('totalTopics');
+
+        // Render topics
+        function renderTopics(topicsToRender) {
+            topicsGrid.innerHTML = '';
+            topicsToRender.forEach((topic, idx) => {
+                const card = createTopicCard(topic);
+                topicsGrid.appendChild(card);
+            });
+
+            totalTopicsSpan.textContent = topicsToRender.length;
+
+            if (topicsToRender.length === 0) {
+                topicsGrid.style.display = 'none';
+                noResults.style.display = 'block';
+            } else {
+                topicsGrid.style.display = 'grid';
+                noResults.style.display = 'none';
+            }
+        }
+
+        function createTopicCard(topic) {
+            const card = document.createElement('div');
+            card.className = 'topic-card';
+            card.innerHTML = `
+                <div class="topic-header">
+                    <div>
+                        <div class="topic-category">${topic.category}</div>
+                        <div class="topic-title">${topic.title}</div>
+                    </div>
+                    <button class="expand-btn">▼</button>
+                </div>
+                <div class="quick-ref">${topic.quickRef}</div>
+                <div class="content">
+                    <div class="section">
+                        <div class="section-title">Deep Dive</div>
+                        <div class="section-content">${topic.deepDive}</div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="section">
+                        <div class="section-title">Insurance Domain Example</div>
+                        <div class="example">
+                            <div class="example-label">💼 Insurance</div>
+                            <div>${topic.insuranceExample}</div>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">E-Commerce Example</div>
+                        <div class="example">
+                            <div class="example-label">🛒 E-Commerce</div>
+                            <div>${topic.ecommerceExample}</div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="section">
+                        <div class="section-title">Advanced Insights</div>
+                        <div class="insight">
+                            <div class="insight-label">🎯 Key Insights</div>
+                            <div>${topic.advancedInsights}</div>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">Follow-Up Questions</div>
+                        ${topic.followupQuestions.map(q => `
+                            <div class="followup">
+                                <div class="followup-label">❓ Interviewer May Ask</div>
+                                <div>"${q}"</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.expand-btn')) {
+                    card.classList.toggle('expanded');
+                } else if (!e.target.closest('a')) {
+                    card.classList.toggle('expanded');
+                }
+            });
+
+            return card;
+        }
+
+        // Search functionality
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = topics.filter(topic => 
+                topic.title.toLowerCase().includes(query) ||
+                topic.quickRef.toLowerCase().includes(query) ||
+                topic.category.toLowerCase().includes(query) ||
+                topic.deepDive.toLowerCase().includes(query)
+            );
+            renderTopics(filtered);
+        });
+
+        // Initial render
+        renderTopics(topics);
+    </script>
+</body>
+</html>
